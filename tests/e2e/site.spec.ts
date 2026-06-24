@@ -77,6 +77,40 @@ test("preview validates query params and swaps templates/devices", async ({ page
   );
 });
 
+test("preview toolbar collapses to free up preview space and remembers it", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 780 });
+  await page.goto("/preview?d=st-margaret-2026/direction-a&device=mobile");
+
+  const toolbar = page.locator("[data-preview-toolbar]");
+  const controls = page.locator("#toolbar-controls");
+  const frame = page.locator("[data-preview-frame]");
+
+  await expect(controls).toBeVisible();
+  const expandedHeight = (await frame.boundingBox())?.height ?? 0;
+  expect(expandedHeight).toBeGreaterThan(0);
+
+  await page.getByRole("button", { name: "Hide menu" }).click();
+  await expect(toolbar).toHaveAttribute("data-collapsed", "true");
+  await expect(controls).toBeHidden();
+  await expect(page.getByRole("button", { name: "Show menu" })).toHaveAttribute(
+    "aria-expanded",
+    "false"
+  );
+  await expect
+    .poll(async () => (await frame.boundingBox())?.height ?? 0)
+    .toBeGreaterThan(expandedHeight);
+
+  // Preference survives a reload via localStorage and stays out of the URL.
+  await page.reload();
+  await expect(toolbar).toHaveAttribute("data-collapsed", "true");
+  await expect(controls).toBeHidden();
+  expect(new URL(page.url()).searchParams.has("collapsed")).toBe(false);
+
+  await page.getByRole("button", { name: "Show menu" }).click();
+  await expect(toolbar).toHaveAttribute("data-collapsed", "false");
+  await expect(controls).toBeVisible();
+});
+
 test("wide desktop preview iframe fills the shell", async ({ page }) => {
   await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto("/preview?d=st-margaret-2026/direction-a&device=desktop");
