@@ -111,6 +111,34 @@ test("preview toolbar collapses to free up preview space and remembers it", asyn
   await expect(controls).toBeVisible();
 });
 
+test("phone-width preview hides the device toggle and renders full-bleed", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 780 });
+  // A stored ?device=mobile preference must not cap + gutter the iframe here.
+  await page.goto("/preview?d=st-margaret-2026/direction-a&device=mobile");
+
+  await expect(page.locator(".device-switch")).toBeHidden();
+
+  const shell = page.locator("[data-frame-shell]");
+  const frame = page.locator("[data-preview-frame]");
+  await expect(shell).toHaveAttribute("data-device", "desktop");
+
+  await expect
+    .poll(async () => {
+      const shellBox = await shell.boundingBox();
+      const frameBox = await frame.boundingBox();
+      return Math.abs((frameBox?.width ?? 0) - (shellBox?.width ?? 0));
+    })
+    .toBeLessThanOrEqual(2);
+});
+
+test("tablet-width preview keeps the device toggle", async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await page.goto("/preview?d=st-margaret-2026/direction-a&device=desktop");
+
+  await expect(page.locator(".device-switch")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Mobile" })).toBeVisible();
+});
+
 test("wide desktop preview iframe fills the shell", async ({ page }) => {
   await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto("/preview?d=st-margaret-2026/direction-a&device=desktop");

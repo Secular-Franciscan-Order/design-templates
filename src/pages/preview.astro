@@ -308,6 +308,14 @@ const firstTemplate = templateData.templates[0];
           box-shadow: none;
         }
       }
+
+      /* On phone-width screens the preview is already at device width, so the
+         desktop/mobile toggle is redundant — hide it and render full-bleed. */
+      @media (max-width: 600px) {
+        .device-switch {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -408,6 +416,10 @@ const firstTemplate = templateData.templates[0];
       const handle = document.querySelector("[data-toolbar-handle]");
       const handleLabel = document.querySelector("[data-handle-label]");
       const COLLAPSE_KEY = "preview:toolbar-collapsed";
+      // The device toggle is hidden below this width (see CSS). On phone-width
+      // screens the iframe is already at device width, so the "mobile" preview
+      // would only cap + gutter it — render full-bleed there instead.
+      const narrowQuery = window.matchMedia("(max-width: 600px)");
 
       const templates = new Map(
         data.templates.map((template) => [template.slug, template])
@@ -457,14 +469,20 @@ const firstTemplate = templateData.templates[0];
         // resizes the frame, so no manual call is needed here.
       }
 
+      function effectiveDevice() {
+        // Ignore a stored/URL "mobile" preference on phone-width screens.
+        return narrowQuery.matches ? "desktop" : state.device;
+      }
+
       function resizeFrame() {
+        const device = effectiveDevice();
         const availableWidth = frameShell.clientWidth;
         const availableHeight = frameShell.clientHeight;
 
-        frameShell.dataset.device = state.device;
+        frameShell.dataset.device = device;
         frame.style.height = `${availableHeight}px`;
 
-        if (state.device === "mobile") {
+        if (device === "mobile") {
           const shellPadding = frameShell.clientWidth <= 900 ? 0 : 48;
           const width = Math.min(390, Math.max(320, availableWidth - shellPadding));
           frame.style.width = `${width}px`;
