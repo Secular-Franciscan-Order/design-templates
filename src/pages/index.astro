@@ -1,10 +1,10 @@
 ---
-import reviewData from "../data/reviews.json";
+import templateData from "../data/templates.json";
 
-const pageTitle = "Design Reviews";
+const pageTitle = "Website Templates";
 const pageDescription =
-  "Unlisted design-preview gallery for live community review.";
-const reviews = reviewData.reviews;
+  "Unlisted template-preview menu for choosing a website design.";
+const templates = templateData.templates;
 ---
 
 <!doctype html>
@@ -24,9 +24,7 @@ const reviews = reviewData.reviews;
         --muted: #5e625f;
         --rule: rgba(28, 26, 23, 0.14);
         --blue: #2f7fb0;
-        --green: #5a8f6b;
         --rust: #8d3d2a;
-        --gold: #b78b3e;
       }
 
       * {
@@ -83,10 +81,8 @@ const reviews = reviewData.reviews;
 
       h1 {
         margin: 0;
-        font-family:
-          Georgia, Cambria, "Times New Roman", Times, serif;
-        font-size: 46px;
-        font-weight: 500;
+        font-size: 42px;
+        font-weight: 850;
         line-height: 1.08;
       }
 
@@ -97,54 +93,17 @@ const reviews = reviewData.reviews;
         font-size: 17px;
       }
 
-      .review-list {
-        display: grid;
-        gap: 42px;
+      .template-list {
         margin-top: 38px;
       }
 
-      .review-heading {
-        display: flex;
-        align-items: end;
-        justify-content: space-between;
-        gap: 20px;
-        margin-bottom: 18px;
-      }
-
-      .review-heading h2 {
-        margin: 0;
-        font-size: 23px;
-        line-height: 1.2;
-      }
-
-      .meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 8px;
-        color: var(--muted);
-        font-size: 14px;
-      }
-
-      .status {
-        min-height: 32px;
-        display: inline-flex;
-        align-items: center;
-        padding: 0 12px;
-        border: 1px solid rgba(90, 143, 107, 0.4);
-        background: #eef4ee;
-        color: #315f40;
-        font-size: 13px;
-        font-weight: 700;
-      }
-
-      .design-grid {
+      .template-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 18px;
       }
 
-      .design-card {
+      .template-card {
         min-width: 0;
         display: grid;
         grid-template-rows: auto 1fr;
@@ -184,11 +143,11 @@ const reviews = reviewData.reviews;
         font-weight: 800;
       }
 
-      .design-card:nth-child(2) .label {
+      .template-card:nth-child(2) .label {
         color: var(--blue);
       }
 
-      .design-card:nth-child(3) .label {
+      .template-card:nth-child(3) .label {
         color: var(--ink);
       }
 
@@ -224,24 +183,19 @@ const reviews = reviewData.reviews;
           padding-top: 30px;
         }
 
-        .topline,
-        .review-heading {
+        .topline {
           display: block;
         }
 
         h1 {
-          font-size: 38px;
+          font-size: 34px;
         }
 
         .lede {
           margin-top: 14px;
         }
 
-        .status {
-          margin-top: 14px;
-        }
-
-        .design-grid {
+        .template-grid {
           grid-template-columns: 1fr;
         }
       }
@@ -251,60 +205,45 @@ const reviews = reviewData.reviews;
     <main>
       <header class="topline">
         <div>
-          <p class="eyebrow">Design reviews</p>
-          <h1>Live design directions for community review.</h1>
+          <p class="eyebrow">Website templates</p>
+          <h1>Choose a template for your website.</h1>
         </div>
         <p class="lede">
-          Review the live homepage directions, choose a favorite, then reply by
-          email with your preference.
+          Browse these live, ready-to-use templates. Pick the one you like,
+          then I'll build your site on it.
         </p>
       </header>
 
-      <section class="review-list" aria-label="Available reviews">
-        {
-          reviews.map((review) => (
-            <article>
-              <div class="review-heading">
-                <div>
-                  <h2>{review.title}</h2>
-                  <div class="meta">
-                    <span>{review.date}</span>
-                    <span aria-hidden="true">/</span>
-                    <span>{review.designs.length} directions</span>
-                  </div>
+      <section class="template-list" aria-label="Available templates">
+        <div class="template-grid">
+          {
+            templates.map((template) => (
+              <a
+                class="template-card"
+                href={`/preview?d=${template.slug}&device=desktop`}
+              >
+                <div class="thumb">
+                  <img
+                    src={`/thumbs/${template.thumb}`}
+                    alt={`${template.title} homepage preview`}
+                    loading="eager"
+                    decoding="async"
+                    width="720"
+                    height="480"
+                  />
                 </div>
-                <span class="status">{review.status}</span>
-              </div>
-
-              <div class="design-grid">
-                {review.designs.map((design) => (
-                  <a
-                    class="design-card"
-                    href={`/preview?d=${review.slug}/${design.slug}&device=desktop`}
-                  >
-                    <div class="thumb">
-                      <img
-                        src={`/thumbs/${design.thumb}`}
-                        alt={`${design.title} homepage preview`}
-                        loading="lazy"
-                        width="720"
-                        height="480"
-                      />
-                    </div>
-                    <div class="card-body">
-                      <div class="card-title">
-                        <span class="label">{design.label}</span>
-                        <h3>{design.title}</h3>
-                      </div>
-                      <p>{design.blurb}</p>
-                      <span class="card-action">Open preview</span>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </article>
-          ))
-        }
+                <div class="card-body">
+                  <div class="card-title">
+                    <span class="label">{template.label}</span>
+                    <h3>{template.title}</h3>
+                  </div>
+                  <p>{template.blurb}</p>
+                  <span class="card-action">View template</span>
+                </div>
+              </a>
+            ))
+          }
+        </div>
       </section>
     </main>
   </body>

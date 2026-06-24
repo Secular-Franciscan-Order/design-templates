@@ -1,11 +1,10 @@
 ---
-import reviewData from "../data/reviews.json";
+import templateData from "../data/templates.json";
 
-const pageTitle = "Design Preview";
+const pageTitle = "Template Preview";
 const pageDescription =
-  "Theme-style design preview shell for live community review.";
-const firstReview = reviewData.reviews[0];
-const firstDesign = firstReview.designs[0];
+  "Theme-style template preview shell for choosing a website design.";
+const firstTemplate = templateData.templates[0];
 ---
 
 <!doctype html>
@@ -20,14 +19,13 @@ const firstDesign = firstReview.designs[0];
       :root {
         color-scheme: light;
         --toolbar-height: 96px;
-        --bg: #ece7dc;
-        --panel: #fffdf8;
-        --ink: #171717;
-        --muted: #626861;
-        --rule: rgba(23, 23, 23, 0.14);
-        --blue: #2f7fb0;
-        --green: #5a8f6b;
-        --rust: #8d3d2a;
+        --chrome: #171717;
+        --chrome-2: #242424;
+        --chrome-text: #f7f3e8;
+        --chrome-muted: #b8b2a7;
+        --chrome-rule: rgba(247, 243, 232, 0.18);
+        --stage: #d5d8d2;
+        --focus: #7ab6d8;
       }
 
       * {
@@ -39,8 +37,8 @@ const firstDesign = firstReview.designs[0];
         height: 100%;
         margin: 0;
         overflow: hidden;
-        background: var(--bg);
-        color: var(--ink);
+        background: var(--stage);
+        color: var(--chrome-text);
         font-family:
           Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
           "Segoe UI", sans-serif;
@@ -53,7 +51,7 @@ const firstDesign = firstReview.designs[0];
 
       a:focus-visible,
       button:focus-visible {
-        outline: 3px solid var(--blue);
+        outline: 3px solid var(--focus);
         outline-offset: 3px;
       }
 
@@ -62,15 +60,14 @@ const firstDesign = firstReview.designs[0];
         inset: 0 0 auto;
         z-index: 10;
         display: grid;
-        grid-template-columns: auto minmax(180px, 1fr) auto auto auto;
+        grid-template-columns: auto minmax(210px, 1fr) auto auto auto;
         gap: 14px;
         align-items: center;
-        min-height: 76px;
+        min-height: 78px;
         padding: 12px 16px;
-        border-bottom: 1px solid var(--rule);
-        background: rgba(255, 253, 248, 0.96);
-        box-shadow: 0 1px 10px rgba(0, 0, 0, 0.08);
-        backdrop-filter: blur(12px);
+        border-bottom: 2px solid #000;
+        background: var(--chrome);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
       }
 
       .gallery-link,
@@ -80,9 +77,9 @@ const firstDesign = firstReview.designs[0];
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid var(--rule);
-        background: var(--panel);
-        color: var(--ink);
+        border: 1px solid var(--chrome-rule);
+        background: var(--chrome-2);
+        color: var(--chrome-text);
         text-decoration: none;
         cursor: pointer;
       }
@@ -97,7 +94,21 @@ const firstDesign = firstReview.designs[0];
         min-width: 0;
       }
 
-      .review-title {
+      .preview-kicker {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        margin-bottom: 5px;
+        padding: 0 7px;
+        border: 1px solid var(--chrome-rule);
+        color: var(--chrome-muted);
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .template-title {
         margin: 0;
         overflow: hidden;
         font-size: 15px;
@@ -107,30 +118,21 @@ const firstDesign = firstReview.designs[0];
         white-space: nowrap;
       }
 
-      .design-title {
-        margin-top: 3px;
-        overflow: hidden;
-        color: var(--muted);
-        font-size: 13px;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
       .segmented {
         display: inline-grid;
         grid-auto-flow: column;
         gap: 0;
-        border: 1px solid var(--rule);
-        background: #eee8dc;
+        border: 1px solid var(--chrome-rule);
+        background: #0f0f0f;
       }
 
       .segmented button {
         min-width: 52px;
         min-height: 44px;
         border: 0;
-        border-right: 1px solid var(--rule);
+        border-right: 1px solid var(--chrome-rule);
         background: transparent;
-        color: var(--ink);
+        color: var(--chrome-text);
         cursor: pointer;
         font-weight: 800;
       }
@@ -140,8 +142,8 @@ const firstDesign = firstReview.designs[0];
       }
 
       .segmented button[aria-pressed="true"] {
-        background: var(--ink);
-        color: #fffdf8;
+        background: var(--chrome-text);
+        color: var(--chrome);
       }
 
       .device-switch button {
@@ -169,12 +171,20 @@ const firstDesign = firstReview.designs[0];
         width: 100%;
         height: calc(100dvh - var(--toolbar-height));
         overflow: hidden;
+        background: #0f0f0f;
+      }
+
+      .frame-shell[data-device="mobile"] {
+        overflow: auto;
+        display: flex;
+        justify-content: center;
+        padding: 24px;
         background:
-          linear-gradient(45deg, rgba(0, 0, 0, 0.035) 25%, transparent 25%),
-          linear-gradient(-45deg, rgba(0, 0, 0, 0.035) 25%, transparent 25%),
-          linear-gradient(45deg, transparent 75%, rgba(0, 0, 0, 0.035) 75%),
-          linear-gradient(-45deg, transparent 75%, rgba(0, 0, 0, 0.035) 75%);
-        background-color: #dcd5ca;
+          linear-gradient(45deg, rgba(0, 0, 0, 0.05) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(0, 0, 0, 0.05) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(0, 0, 0, 0.05) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(0, 0, 0, 0.05) 75%);
+        background-color: #cfd3cc;
         background-position:
           0 0,
           0 12px,
@@ -183,23 +193,21 @@ const firstDesign = firstReview.designs[0];
         background-size: 24px 24px;
       }
 
-      .frame-shell[data-device="mobile"] {
-        overflow: auto;
-        display: flex;
-        justify-content: center;
-        padding: 24px;
-      }
-
       iframe {
         display: block;
         border: 0;
         background: white;
-        transform-origin: top left;
+      }
+
+      .frame-shell[data-device="desktop"] iframe {
+        width: 100%;
       }
 
       .frame-shell[data-device="mobile"] iframe {
         flex: 0 0 auto;
-        box-shadow: 0 0 0 1px rgba(23, 23, 23, 0.18), 0 18px 45px rgba(0, 0, 0, 0.18);
+        box-shadow:
+          0 0 0 1px rgba(23, 23, 23, 0.22),
+          0 18px 45px rgba(0, 0, 0, 0.2);
       }
 
       .toast {
@@ -257,30 +265,31 @@ const firstDesign = firstReview.designs[0];
   </head>
   <body>
     <header class="toolbar" data-preview-toolbar>
-      <a class="gallery-link" href="/" aria-label="Back to gallery">← Gallery</a>
+      <a class="gallery-link" href="/" aria-label="Back to templates">← Templates</a>
 
       <div class="title-block">
-        <p class="review-title" data-review-title>{firstReview.title}</p>
-        <div class="design-title" data-design-title>
-          Direction {firstDesign.label} · {firstDesign.title}
-        </div>
+        <div class="preview-kicker">Preview menu</div>
+        <p class="template-title" data-template-title>
+          Template {firstTemplate.label} · {firstTemplate.title}
+        </p>
       </div>
 
-      <div class="segmented design-switch" aria-label="Design direction">
+      <div class="segmented template-switch" aria-label="Template">
         {
-          firstReview.designs.map((design) => (
+          templateData.templates.map((template) => (
             <button
               type="button"
-              data-design-key={`${firstReview.slug}/${design.slug}`}
-              aria-pressed={design.slug === firstDesign.slug ? "true" : "false"}
+              data-template-key={template.slug}
+              aria-label={`Template ${template.label} - ${template.title}`}
+              aria-pressed={template.slug === firstTemplate.slug ? "true" : "false"}
             >
-              {design.label}
+              {template.label}
             </button>
           ))
         }
       </div>
 
-      <div class="segmented device-switch" aria-label="Device">
+      <div class="segmented device-switch" aria-label="Preview size">
         <button type="button" data-device="desktop" aria-pressed="true">
           Desktop
         </button>
@@ -292,7 +301,7 @@ const firstDesign = firstReview.designs[0];
       <div class="actions">
         <a
           class="toolbar-link"
-          href={firstDesign.desktop.src}
+          href={firstTemplate.src}
           target="_blank"
           rel="noopener noreferrer"
           data-open-link
@@ -309,8 +318,8 @@ const firstDesign = firstReview.designs[0];
       <div class="frame-shell" data-frame-shell data-device="desktop">
         <iframe
           data-preview-frame
-          src={firstDesign.desktop.src}
-          title={`${firstReview.title} - Direction ${firstDesign.label}: ${firstDesign.title} desktop preview`}
+          src={firstTemplate.src}
+          title={`Template ${firstTemplate.label}: ${firstTemplate.title} desktop preview`}
           sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
           referrerpolicy="strict-origin-when-cross-origin"
         ></iframe>
@@ -320,38 +329,32 @@ const firstDesign = firstReview.designs[0];
     <p class="toast" data-toast hidden aria-live="polite"></p>
 
     <script
-      id="review-data"
+      id="template-data"
       type="application/json"
       is:inline
-      set:html={JSON.stringify(reviewData)}
+      set:html={JSON.stringify(templateData)}
     ></script>
 
     <script is:inline>
-      const data = JSON.parse(document.getElementById("review-data").textContent);
+      const data = JSON.parse(document.getElementById("template-data").textContent);
       const toolbar = document.querySelector("[data-preview-toolbar]");
       const frameShell = document.querySelector("[data-frame-shell]");
       const frame = document.querySelector("[data-preview-frame]");
-      const reviewTitle = document.querySelector("[data-review-title]");
-      const designTitle = document.querySelector("[data-design-title]");
+      const templateTitle = document.querySelector("[data-template-title]");
       const openLink = document.querySelector("[data-open-link]");
       const toast = document.querySelector("[data-toast]");
-      const designButtons = [...document.querySelectorAll("[data-design-key]")];
+      const templateButtons = [...document.querySelectorAll("[data-template-key]")];
       const deviceButtons = [...document.querySelectorAll("button[data-device]")];
 
-      const designs = new Map();
-
-      for (const review of data.reviews) {
-        for (const design of review.designs) {
-          designs.set(`${review.slug}/${design.slug}`, { review, design });
-        }
-      }
-
-      const firstKey = `${data.reviews[0].slug}/${data.reviews[0].designs[0].slug}`;
+      const templates = new Map(
+        data.templates.map((template) => [template.slug, template])
+      );
+      const firstKey = data.templates[0].slug;
       let state = readStateFromLocation();
 
       function readStateFromLocation() {
         const params = new URLSearchParams(window.location.search);
-        const key = designs.has(params.get("d")) ? params.get("d") : firstKey;
+        const key = templates.has(params.get("d")) ? params.get("d") : firstKey;
         const device = params.get("device") === "mobile" ? "mobile" : "desktop";
         return { key, device };
       }
@@ -371,43 +374,34 @@ const firstDesign = firstReview.designs[0];
       }
 
       function resizeFrame() {
-        const { design } = designs.get(state.key);
         const availableWidth = frameShell.clientWidth;
         const availableHeight = frameShell.clientHeight;
 
         frameShell.dataset.device = state.device;
+        frame.style.height = `${availableHeight}px`;
 
         if (state.device === "mobile") {
-          const width = design.mobile.width ?? design.mobileWidth ?? 390;
+          const shellPadding = frameShell.clientWidth <= 900 ? 0 : 48;
+          const width = Math.min(390, Math.max(320, availableWidth - shellPadding));
           frame.style.width = `${width}px`;
-          frame.style.height = `${availableHeight}px`;
-          frame.style.transform = "none";
           return;
         }
 
-        const authoredWidth = design.desktop.width ?? design.authoredWidth;
-        const scale = Math.min(1, availableWidth / authoredWidth);
-
-        frame.style.width = `${authoredWidth}px`;
-        frame.style.height = `${Math.ceil(availableHeight / scale)}px`;
-        frame.style.transform = `scale(${scale})`;
+        frame.style.width = "100%";
       }
 
       function render(mode = "push") {
-        const entry = designs.get(state.key) ?? designs.get(firstKey);
-        const { review, design } = entry;
-        const current = design[state.device];
+        const template = templates.get(state.key) ?? templates.get(firstKey);
 
-        reviewTitle.textContent = review.title;
-        designTitle.textContent = `Direction ${design.label} · ${design.title}`;
-        frame.src = current.src;
-        frame.title = `${review.title} - Direction ${design.label}: ${design.title} ${state.device} preview`;
-        openLink.href = current.src;
+        templateTitle.textContent = `Template ${template.label} · ${template.title}`;
+        frame.src = template.src;
+        frame.title = `Template ${template.label}: ${template.title} ${state.device} preview`;
+        openLink.href = template.src;
 
-        for (const button of designButtons) {
+        for (const button of templateButtons) {
           button.setAttribute(
             "aria-pressed",
-            String(button.dataset.designKey === state.key)
+            String(button.dataset.templateKey === state.key)
           );
         }
 
@@ -422,9 +416,9 @@ const firstDesign = firstReview.designs[0];
         requestAnimationFrame(resizeFrame);
       }
 
-      for (const button of designButtons) {
+      for (const button of templateButtons) {
         button.addEventListener("click", () => {
-          state = { ...state, key: button.dataset.designKey };
+          state = { ...state, key: button.dataset.templateKey };
           render();
         });
       }

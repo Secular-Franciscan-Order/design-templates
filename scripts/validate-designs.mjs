@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const manifestPath = join(root, "src/data/reviews.json");
+const manifestPath = join(root, "src/data/templates.json");
 const publicRoot = join(root, "public");
 const designsRoot = join(publicRoot, "designs");
 const thumbsRoot = join(publicRoot, "thumbs");
@@ -55,34 +55,23 @@ await assertExists(join(publicRoot, "_headers"), "Cloudflare Pages headers");
 
 const manifest = await readJson(manifestPath);
 
-if (manifest && !Array.isArray(manifest.reviews)) {
-  failures.push(`${manifestPath}: expected a top-level reviews array.`);
+if (manifest && !Array.isArray(manifest.templates)) {
+  failures.push(`${manifestPath}: expected a top-level templates array.`);
 }
 
-for (const review of manifest?.reviews ?? []) {
-  if (!Array.isArray(review.designs)) {
-    failures.push(`Review ${review.slug ?? "(missing slug)"} has no designs array.`);
+for (const template of manifest?.templates ?? []) {
+  const name = template.slug ?? "(missing slug)";
+
+  if (!template.src) {
+    failures.push(`${name} is missing src in templates.json.`);
     continue;
   }
 
-  for (const design of review.designs) {
-    const name = `${review.slug}/${design.slug}`;
-
-    if (design.thumb) {
-      await assertExists(join(thumbsRoot, design.thumb), `${name} thumbnail`);
-    }
-
-    for (const device of ["desktop", "mobile"]) {
-      const file = design[device]?.src;
-
-      if (!file) {
-        failures.push(`${name} is missing ${device}.src in reviews.json.`);
-        continue;
-      }
-
-      await assertExists(join(publicRoot, file.replace(/^\//, "")), `${name} ${device} page`);
-    }
+  if (template.thumb) {
+    await assertExists(join(thumbsRoot, template.thumb), `${name} thumbnail`);
   }
+
+  await assertExists(join(publicRoot, template.src.replace(/^\//, "")), `${name} page`);
 }
 
 for (const file of await listHtmlFiles(designsRoot)) {
@@ -100,6 +89,14 @@ for (const file of await listHtmlFiles(designsRoot)) {
 
   if (/left:\s*1(?:3[89]|4[0-2])0px/.test(html)) {
     failures.push(`${file}: mobile artboard still appears parked off-screen.`);
+  }
+
+  if (/width=(?:"|')(?:1320|1280|390)(?:"|')/.test(html)) {
+    failures.push(`${file}: fixed artboard viewport width remains.`);
+  }
+
+  if (/body\s*\{[^}]*width:\s*(?:1320|1280|390)px/s.test(html)) {
+    failures.push(`${file}: fixed artboard body width remains.`);
   }
 
   if (!html.includes('name="robots"') || !html.includes("noindex")) {

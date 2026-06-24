@@ -1,0 +1,28 @@
+{
+  "templates": [
+    {
+      "slug": "st-margaret-2026/direction-a",
+      "label": "A",
+      "title": "The Pilgrim's Path",
+      "blurb": "Traditional, sacred, and illustration-led with parchment, espresso, terracotta, and Franciscan ornament.",
+      "thumb": "st-margaret-2026/direction-a.jpg",
+      "src": "/designs/st-margaret-2026/direction-a/index.html"
+    },
+    {
+      "slug": "st-margaret-2026/direction-b",
+      "label": "B",
+      "title": "Come and See",
+      "blurb": "Warm, modern, and welcoming with sky blue, soft green, rounded cards, and human-friendly pacing.",
+      "thumb": "st-margaret-2026/direction-b.jpg",
+      "src": "/designs/st-margaret-2026/direction-b/index.html"
+    },
+    {
+      "slug": "st-margaret-2026/direction-c",
+      "label": "C",
+      "title": "Gospel to Life",
+      "blurb": "Minimal, editorial, and typography-led with ivory paper, ink, oxblood, and quiet rules.",
+      "thumb": "st-margaret-2026/direction-c.jpg",
+      "src": "/designs/st-margaret-2026/direction-c/index.html"
+    }
+  ]
+}

@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Template B - Come and See</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/designs/template-base.css">
+    <style>
+      :root {
+        --bg: #fefcf9;
+        --ink: #243240;
+        --muted: #46586a;
+        --blue: #2f7fb0;
+        --green: #5a8f6b;
+        --mint: #eef4ee;
+        --sky: #eaf3f7;
+        --cream: #f6f1e7;
+        --rule: #dde9e0;
+      }
+
+      html,
+      body {
+        background: var(--bg);
+      }
+
+      body {
+        color: var(--ink);
+        font-family: Figtree, system-ui, sans-serif;
+      }
+
+      .template {
+        width: 100%;
+        background: var(--bg);
+      }
+
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 20px clamp(22px, 4vw, 54px);
+        border-bottom: 1px solid #ece3d4;
+        background: rgba(254, 252, 249, 0.96);
+        backdrop-filter: blur(10px);
+      }
+
+      .brand {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .brand-mark {
+        width: 40px;
+        height: 40px;
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--blue);
+        color: #fff;
+        font-family: "Bricolage Grotesque", system-ui, sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .brand-name {
+        display: block;
+        font-family: "Bricolage Grotesque", system-ui, sans-serif;
+        font-size: clamp(17px, 1.7vw, 19px);
+        font-weight: 700;
+        line-height: 1.05;
+      }
+
+      .brand-subtitle {
+        display: block;
+        margin-top: 3px;
+        color: #7c8b96;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .desktop-nav {
+        display: flex;
+        align-items: center;
+        gap: clamp(18px, 2.3vw, 28px);
+        font-size: 16px;
+        font-weight: 500;
+      }
+
+      .desktop-nav a {
+        color: #3a4a56;
+        text-decoration: none;
+      }
+
+      .button-primary,
+      .desktop-nav .nav-cta {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 30px;
+        background: var(--blue);
+        color: #fff;
+        padding: 0 26px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .button-secondary {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        border: 1.5px solid #cfe0e8;
+        border-radius: 30px;
+        background: #fff;
+        color: var(--blue);
+        padding: 0 24px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .demo-menu-toggle {
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .demo-menu-toggle span {
+        width: 24px;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--blue);
+      }
+
+      .hero {
+        position: relative;
+        min-height: min(620px, calc(100dvh - 80px));
+        display: flex;
+        align-items: center;
+        padding: clamp(54px, 8vw, 90px) clamp(22px, 4vw, 54px);
+        overflow: hidden;
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(100deg, rgba(254, 252, 249, 0.98) 0%, rgba(254, 252, 249, 0.9) 42%, rgba(254, 252, 249, 0.2) 100%),
+          linear-gradient(135deg, #cfe0e8, #dbe7da 48%, #f6e3b7);
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: auto 7% 9% auto;
+        width: min(46vw, 520px);
+        aspect-ratio: 4 / 3;
+        border-radius: 24px;
+        background:
+          radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.7) 0 9%, transparent 10%),
+          linear-gradient(150deg, rgba(47, 127, 176, 0.22), rgba(90, 143, 107, 0.22)),
+          repeating-linear-gradient(45deg, rgba(47, 127, 176, 0.08) 0 2px, transparent 2px 13px);
+        box-shadow: 0 30px 80px rgba(36, 50, 64, 0.16);
+      }
+
+      .hero-content {
+        position: relative;
+        z-index: 1;
+        width: min(100%, 650px);
+      }
+
+      .pill {
+        display: inline-flex;
+        min-height: 34px;
+        align-items: center;
+        margin-bottom: 24px;
+        padding: 0 16px;
+        border-radius: 30px;
+        background: #e7f0d9;
+        color: #4d7d4d;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: "Bricolage Grotesque", system-ui, sans-serif;
+      }
+
+      h1 {
+        margin: 0 0 22px;
+        font-size: clamp(40px, 6vw, 62px);
+        font-weight: 700;
+        letter-spacing: 0;
+        line-height: 1.02;
+      }
+
+      .hero p {
+        max-width: 620px;
+        margin: 0 0 32px;
+        color: var(--muted);
+        font-size: clamp(18px, 2vw, 21px);
+        line-height: 1.55;
+      }
+
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+      }
+
+      .section {
+        padding: clamp(48px, 7vw, 84px) clamp(22px, 4vw, 54px);
+      }
+
+      .section-mint {
+        background: var(--mint);
+      }
+
+      .section-sky {
+        background: var(--sky);
+      }
+
+      .container {
+        width: min(100%, 1100px);
+        margin: 0 auto;
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+        gap: clamp(34px, 5vw, 56px);
+        align-items: center;
+      }
+
+      .kicker {
+        margin-bottom: 16px;
+        color: var(--green);
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h2 {
+        margin: 0 0 14px;
+        font-size: clamp(32px, 5vw, 44px);
+        font-weight: 700;
+        line-height: 1.08;
+      }
+
+      .lead {
+        margin: 0;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.65;
+      }
+
+      .photo-card {
+        min-height: 420px;
+        border-radius: 18px;
+        background:
+          linear-gradient(180deg, transparent 0 48%, rgba(255, 255, 255, 0.82) 49% 100%),
+          repeating-linear-gradient(45deg, rgba(47, 127, 176, 0.08) 0 2px, transparent 2px 11px),
+          #dbe7da;
+        display: flex;
+        align-items: flex-end;
+        padding: 18px;
+      }
+
+      .photo-card span {
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #5b7a8a;
+        padding: 7px 12px;
+        font-size: 12px;
+        letter-spacing: 0.04em;
+      }
+
+      .center {
+        text-align: center;
+      }
+
+      .visit-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 1fr);
+        gap: 28px;
+      }
+
+      .info-stack {
+        display: grid;
+        gap: 18px;
+      }
+
+      .info-card {
+        display: flex;
+        gap: 18px;
+        align-items: center;
+        border-radius: 18px;
+        padding: 28px;
+      }
+
+      .info-card.blue {
+        background: var(--sky);
+      }
+
+      .info-card.green {
+        background: var(--mint);
+      }
+
+      .info-icon {
+        width: 54px;
+        height: 54px;
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+        border-radius: 14px;
+        background: var(--blue);
+        color: #fff;
+        font-weight: 800;
+      }
+
+      .info-card.green .info-icon {
+        background: var(--green);
+      }
+
+      .info-card h3 {
+        margin: 0 0 4px;
+        font-size: 22px;
+      }
+
+      .map-panel {
+        min-height: 320px;
+        border-radius: 18px;
+        background:
+          repeating-linear-gradient(0deg, rgba(47, 127, 176, 0.07) 0 1px, transparent 1px 30px),
+          repeating-linear-gradient(90deg, rgba(47, 127, 176, 0.07) 0 1px, transparent 1px 30px),
+          #dfe8ec;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      .step-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px;
+        margin: 36px 0;
+      }
+
+      .step-card {
+        border: 1px solid #d7e6ed;
+        border-radius: 20px;
+        background: #fff;
+        padding: 32px;
+      }
+
+      .step-card .step-label {
+        margin-bottom: 14px;
+        color: var(--blue);
+        font-size: 15px;
+        font-weight: 800;
+      }
+
+      .step-card h3 {
+        margin: 0 0 6px;
+        font-size: 26px;
+      }
+
+      .profession-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        border-radius: 20px;
+        background: var(--blue);
+        color: #fff;
+        padding: clamp(28px, 4vw, 40px);
+      }
+
+      .newsletter-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(280px, 1fr);
+        gap: 28px;
+      }
+
+      .feature-issue {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border-radius: 20px;
+        background: var(--sky);
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .cover {
+        min-height: 180px;
+        background:
+          linear-gradient(135deg, rgba(47, 127, 176, 0.2), rgba(90, 143, 107, 0.2)),
+          repeating-linear-gradient(45deg, rgba(47, 127, 176, 0.08) 0 2px, transparent 2px 11px),
+          #cfe0e8;
+        display: grid;
+        place-items: center;
+        color: #5b7a8a;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .issue-body {
+        padding: 26px;
+      }
+
+      .tag {
+        display: inline-flex;
+        min-height: 24px;
+        align-items: center;
+        margin-bottom: 12px;
+        border-radius: 20px;
+        background: var(--blue);
+        color: #fff;
+        padding: 0 12px;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .issue-links {
+        display: grid;
+        gap: 12px;
+      }
+
+      .issue-links a {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        border-radius: 14px;
+        background: var(--cream);
+        color: inherit;
+        padding: 20px 22px;
+        text-decoration: none;
+      }
+
+      .faq-list {
+        width: min(100%, 880px);
+        margin: 0 auto;
+      }
+
+      .faq-list details {
+        margin-bottom: 12px;
+        border: 1px solid var(--rule);
+        border-radius: 14px;
+        background: #fff;
+      }
+
+      .faq-list summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 22px 24px;
+        font-family: "Bricolage Grotesque", system-ui, sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .demo-plus {
+        color: var(--blue);
+        font-size: 26px;
+        transition: transform 0.2s;
+      }
+
+      .faq-list p {
+        margin: 0;
+        padding: 0 24px 24px;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.7;
+      }
+
+      .contact-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 1fr);
+        gap: clamp(30px, 5vw, 48px);
+        align-items: start;
+        border-radius: 24px;
+        background: var(--sky);
+        padding: clamp(28px, 5vw, 48px);
+      }
+
+      form {
+        display: grid;
+        gap: 14px;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        border: 1px solid #cfe0e8;
+        border-radius: 12px;
+        background: #fff;
+        color: var(--ink);
+        padding: 15px 16px;
+        font-family: inherit;
+        font-size: 17px;
+      }
+
+      textarea {
+        resize: vertical;
+      }
+
+      form button {
+        border: 0;
+        border-radius: 30px;
+        background: var(--blue);
+        color: #fff;
+        padding: 16px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      footer {
+        background: var(--ink);
+        color: #b9c6d0;
+        padding: 54px clamp(22px, 4vw, 54px) 38px;
+      }
+
+      .footer-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 1.2fr;
+        gap: 40px;
+      }
+
+      footer a {
+        color: #b9c6d0;
+        text-decoration: none;
+      }
+
+      @media (max-width: 920px) {
+        .hero::after {
+          opacity: 0.38;
+          width: 70vw;
+        }
+
+        .split,
+        .visit-grid,
+        .step-grid,
+        .newsletter-grid,
+        .contact-panel,
+        .footer-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .photo-card {
+          min-height: 280px;
+        }
+
+        .profession-card {
+          display: grid;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .brand-subtitle {
+          display: none;
+        }
+
+        .hero,
+        .section {
+          padding-inline: 22px;
+        }
+
+        .cta-row a,
+        .button-primary,
+        .button-secondary {
+          width: 100%;
+        }
+
+        .info-card {
+          align-items: flex-start;
+          padding: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body data-design="direction-b">
+    <div class="template">
+      <header class="site-header">
+        <a class="brand" href="#top">
+          <span class="brand-mark" aria-hidden="true">✶</span>
+          <span><span class="brand-name">St. Margaret of Cortona</span><span class="brand-subtitle">Secular Franciscans · Las Vegas</span></span>
+        </a>
+        <nav class="desktop-nav" aria-label="Primary">
+          <a href="#who-we-are">Who We Are</a>
+          <a href="#where-we-meet">Visit Us</a>
+          <a href="#discernment">Discernment</a>
+          <a href="#the-scoop">Newsletter</a>
+          <a href="#faq">FAQ</a>
+          <a class="nav-cta" href="#where-we-meet">Come and See</a>
+        </nav>
+        <button type="button" class="demo-menu-toggle" aria-expanded="false" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
+      </header>
+
+      <main>
+        <section id="top" class="hero">
+          <div class="hero-content">
+            <div class="pill">Peace and all good - welcome</div>
+            <h1>Is God calling you to the Secular Franciscan Order?</h1>
+            <p>You don't have to have it all figured out. If your heart is stirring toward a simpler, more Gospel-centered life - come and see. There's a place for you at the table.</p>
+            <div class="cta-row">
+              <a class="button-primary" href="#discernment">Start here →</a>
+              <a class="button-secondary" href="#where-we-meet">Visit a gathering</a>
+            </div>
+          </div>
+        </section>
+
+        <section id="who-we-are" class="section section-mint">
+          <div class="container split">
+            <div>
+              <div class="kicker">Who We Are</div>
+              <h2>Ordinary lay Catholics following Jesus in the joyful way of Francis and Clare.</h2>
+              <p class="lead">We're not monks or nuns. We have jobs, families, and busy lives - and we've found that the Franciscan path makes all of it richer. We serve people who have less, care for creation, and bring a little more hope to our corner of Las Vegas.</p>
+            </div>
+            <div class="photo-card"><span>shared table / open hands visual</span></div>
+          </div>
+        </section>
+
+        <section id="where-we-meet" class="section">
+          <div class="container">
+            <div class="center" style="margin-bottom: 40px;">
+              <div class="kicker" style="color: var(--blue);">Come and See</div>
+              <h2>Just show up - you're welcome</h2>
+              <p class="lead">All Catholics of any rite are welcome. No registration, no pressure.</p>
+            </div>
+            <div class="visit-grid">
+              <div class="info-stack">
+                <div class="info-card blue"><div class="info-icon">1</div><div><h3>Last Sunday of the month</h3><p class="lead">12:30 - 3:30 pm</p></div></div>
+                <div class="info-card green"><div class="info-icon">2</div><div><h3>St. Gabriel the Archangel Church</h3><p class="lead">2250 E. Maule Ave., Las Vegas, NV 89118</p></div></div>
+                <a class="button-primary" href="https://www.google.com/maps/dir/?api=1&destination=St.%20Gabriel%20the%20Archangel%20Church%2C%202250%20E.%20Maule%20Ave.%2C%20Las%20Vegas%2C%20NV%2089118">Get directions →</a>
+              </div>
+              <div class="map-panel"><div class="demo-map-link-panel"><strong>St. Gabriel the Archangel Church</strong><span>2250 E. Maule Ave., Las Vegas, NV 89118</span><a href="https://www.google.com/maps/dir/?api=1&destination=St.%20Gabriel%20the%20Archangel%20Church%2C%202250%20E.%20Maule%20Ave.%2C%20Las%20Vegas%2C%20NV%2089118">Get directions ↗</a></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="discernment" class="section section-sky">
+          <div class="container">
+            <div class="center">
+              <div class="kicker" style="color: var(--blue);">Your Path to Joining</div>
+              <h2>There's no rush - just one step at a time</h2>
+              <p class="lead" style="max-width: 660px; margin-inline: auto;">Becoming a Secular Franciscan unfolds gently over a few years. Nothing is asked of you up front but curiosity and an open heart.</p>
+            </div>
+            <div class="step-grid">
+              <div class="step-card"><div class="step-label">STEP 1</div><h3>Orientation</h3><strong>About 3 months</strong><p class="lead">Come along, meet everyone, and ask all your questions. A warm, no-commitment welcome.</p></div>
+              <div class="step-card"><div class="step-label">STEP 2</div><h3>Inquiry</h3><strong>About 6-9 months</strong><p class="lead">Walk with us as we explore the life of Francis and the Gospel together, in real friendship.</p></div>
+              <div class="step-card"><div class="step-label">STEP 3</div><h3>Candidacy</h3><strong>About 2 years</strong><p class="lead">Deeper formation as you prepare - if you're ready - for a lifelong profession.</p></div>
+            </div>
+            <div class="profession-card">
+              <div><h3 style="margin: 0; font-size: 28px;">...leading to lifelong profession.</h3><p style="margin: 8px 0 0; color: #d6e9f2;">Take the first step today - we'd love to hear from you.</p></div>
+              <a class="button-secondary" href="#contact">Reach out →</a>
+            </div>
+          </div>
+        </section>
+
+        <section id="the-scoop" class="section">
+          <div class="container">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 30px; flex-wrap: wrap;">
+              <div><div class="kicker">Newsletter Archive</div><h2>The Franciscan Scoop</h2></div>
+              <a class="button-secondary" href="https://www.stmregionofs.com/the-franciscan-scoop">View all issues →</a>
+            </div>
+            <div class="newsletter-grid">
+              <a class="feature-issue" href="https://www.stmregionofs.com/_files/ugd/9af1c7_9b9850224ce048f1b3f8ec01bcd755ff.pdf"><div class="cover">Summer 2025 cover</div><div class="issue-body"><span class="tag">NEWEST ISSUE · PDF</span><h3>Summer 2025</h3><p class="lead">Reflections on the Canticle of the Creatures, news from across the St. Thomas More Region, and a warm welcome to our new inquirers.</p></div></a>
+              <div class="issue-links">
+                <a href="https://www.stmregionofs.com/_files/ugd/9af1c7_4576aa3d8e104a5ab6c7521c9e3e0ff3.pdf"><strong>Spring 2025</strong><span>PDF ↗</span></a>
+                <a href="https://www.stmregionofs.com/_files/ugd/9af1c7_0342823f945b4817926a75f4400f2311.pdf"><strong>Fall 2024</strong><span>PDF ↗</span></a>
+                <a href="https://www.stmregionofs.com/_files/ugd/9af1c7_d96705f0f4b24d7d82e6a6e2931debcc.pdf"><strong>Summer 2024</strong><span>PDF ↗</span></a>
+                <a href="https://www.stmregionofs.com/_files/ugd/96201f_e83f9320a6b84a69976456b8d00949d6.pdf"><strong>Spring 2024</strong><span>PDF ↗</span></a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="faq" class="section section-mint">
+          <div class="faq-list">
+            <div class="center" style="margin-bottom: 36px;"><div class="kicker">Good questions</div><h2>Is this for me?</h2></div>
+            <details open><summary>Who are the Franciscans?<span class="demo-plus">+</span></summary><p>Followers of St. Francis of Assisi, who gave up wealth to live close to Jesus and the poor. His family today includes friars, sisters, and lay people - Secular Franciscans - living his Gospel spirit in the everyday world.</p></details>
+            <details><summary>Do you live like monks and nuns?<span class="demo-plus">+</span></summary><p>Not at all. We take no monastic vows and we live in our own homes. We keep our jobs, marry, raise families, and bring the Franciscan spirit into ordinary daily life.</p></details>
+            <details><summary>Can anyone join the Secular Franciscan Order?<span class="demo-plus">+</span></summary><p>Any practicing Catholic - single or married, age 18 or up - who feels drawn to this way of life is warmly welcome to begin discerning with us.</p></details>
+            <details><summary>What is expected of me if I join?<span class="demo-plus">+</span></summary><p>A life of daily prayer, regular Mass, faithful presence at our monthly gatherings, and a heart open to the poor and to peace - all lived out within your own everyday circumstances.</p></details>
+          </div>
+        </section>
+
+        <section id="contact" class="section">
+          <div class="container contact-panel">
+            <div>
+              <div class="kicker" style="color: var(--blue);">Say hello</div>
+              <h2>We'd love to hear from you</h2>
+              <p class="lead">Drop us a line and a real person will write back - warmly, and with no pressure at all.</p>
+              <p class="lead">Prefer to talk to someone? Ask for <strong>Maria</strong>, and we'll connect you personally.</p>
+            </div>
+            <form>
+              <input type="text" autocomplete="name" placeholder="Your name">
+              <input type="email" autocomplete="email" placeholder="Email address">
+              <textarea rows="4" placeholder="Tell us a little about yourself..."></textarea>
+              <button type="submit">Send message →</button>
+            </form>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <div class="container footer-grid">
+          <div><strong style="color: #fff;">St. Margaret of Cortona</strong><p>Secular Franciscan Order · St. Thomas More Region · Las Vegas, Nevada. Franciscan is spoken here.</p></div>
+          <div><strong style="color: #fff;">Explore</strong><br><a href="#who-we-are">Who We Are</a><br><a href="#where-we-meet">Visit Us</a><br><a href="#discernment">Discernment</a><br><a href="#the-scoop">Newsletter</a></div>
+          <div><strong style="color: #fff;">Take the next step</strong><p>Curious whether this is your calling? There's only one way to find out.</p><a class="button-primary" href="#where-we-meet">Come and See →</a></div>
+        </div>
+      </footer>
+    </div>
+    <script src="/designs/demo-enhance.js" defer></script>
+  </body>
+</html>

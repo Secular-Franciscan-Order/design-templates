@@ -2,7 +2,7 @@
 
 ## Project
 
-This repository contains a static Astro site for live design-direction demos.
+This repository contains a static Astro site for live website template demos.
 It deploys to Cloudflare Pages as `design-templates`, currently intended for
 the interim domain `ofs-demos.endian.dev`.
 
@@ -49,6 +49,6 @@ decision.
 - Do not add `wrangler.jsonc` for git-connected Pages deployments.
 - Keep design source archives, scratch exports, and generated thumbnails out of
   git unless they are intentional optimized site assets.
-- The demo pages may be public, but they are review material. Avoid committing
-  secrets, private contact lists, `.env` files, Cloudflare tokens, or private
-  configuration.
+- The demo pages may be public, but they should remain noindexed template
+  previews. Avoid committing secrets, private contact lists, `.env` files,
+  Cloudflare tokens, or private configuration.
