@@ -1,9 +1,9 @@
 # Design Templates
 
-Static Astro site for live, interactive design-direction previews.
+Static Astro site for live, interactive website template previews.
 
-This repository is the reusable home for review demos. The first production use
-is the St. Margaret of Cortona Fraternity redesign preview gallery.
+This repository is the reusable home for template demos. The first production
+set uses St. Margaret of Cortona Fraternity sample content.
 
 ## Local Development
 

@@ -1,0 +1,462 @@
+---
+import templateData from "../data/templates.json";
+
+const pageTitle = "Template Preview";
+const pageDescription =
+  "Theme-style template preview shell for choosing a website design.";
+const firstTemplate = templateData.templates[0];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="description" content={pageDescription} />
+    <title>{pageTitle}</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --toolbar-height: 96px;
+        --chrome: #171717;
+        --chrome-2: #242424;
+        --chrome-text: #f7f3e8;
+        --chrome-muted: #b8b2a7;
+        --chrome-rule: rgba(247, 243, 232, 0.18);
+        --stage: #d5d8d2;
+        --focus: #7ab6d8;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--stage);
+        color: var(--chrome-text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      a,
+      button {
+        font: inherit;
+      }
+
+      a:focus-visible,
+      button:focus-visible {
+        outline: 3px solid var(--focus);
+        outline-offset: 3px;
+      }
+
+      .toolbar {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 10;
+        display: grid;
+        grid-template-columns: auto minmax(210px, 1fr) auto auto auto;
+        gap: 14px;
+        align-items: center;
+        min-height: 78px;
+        padding: 12px 16px;
+        border-bottom: 2px solid #000;
+        background: var(--chrome);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      }
+
+      .gallery-link,
+      .toolbar-link,
+      .toolbar-button {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--chrome-rule);
+        background: var(--chrome-2);
+        color: var(--chrome-text);
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .gallery-link {
+        gap: 8px;
+        padding: 0 14px;
+        font-weight: 800;
+      }
+
+      .title-block {
+        min-width: 0;
+      }
+
+      .preview-kicker {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        margin-bottom: 5px;
+        padding: 0 7px;
+        border: 1px solid var(--chrome-rule);
+        color: var(--chrome-muted);
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .template-title {
+        margin: 0;
+        overflow: hidden;
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.2;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .segmented {
+        display: inline-grid;
+        grid-auto-flow: column;
+        gap: 0;
+        border: 1px solid var(--chrome-rule);
+        background: #0f0f0f;
+      }
+
+      .segmented button {
+        min-width: 52px;
+        min-height: 44px;
+        border: 0;
+        border-right: 1px solid var(--chrome-rule);
+        background: transparent;
+        color: var(--chrome-text);
+        cursor: pointer;
+        font-weight: 800;
+      }
+
+      .segmented button:last-child {
+        border-right: 0;
+      }
+
+      .segmented button[aria-pressed="true"] {
+        background: var(--chrome-text);
+        color: var(--chrome);
+      }
+
+      .device-switch button {
+        min-width: 88px;
+      }
+
+      .actions {
+        display: inline-flex;
+        gap: 8px;
+      }
+
+      .toolbar-link,
+      .toolbar-button {
+        padding: 0 12px;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .stage {
+        height: 100dvh;
+        padding-top: var(--toolbar-height);
+      }
+
+      .frame-shell {
+        width: 100%;
+        height: calc(100dvh - var(--toolbar-height));
+        overflow: hidden;
+        background: #0f0f0f;
+      }
+
+      .frame-shell[data-device="mobile"] {
+        overflow: auto;
+        display: flex;
+        justify-content: center;
+        padding: 24px;
+        background:
+          linear-gradient(45deg, rgba(0, 0, 0, 0.05) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(0, 0, 0, 0.05) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(0, 0, 0, 0.05) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(0, 0, 0, 0.05) 75%);
+        background-color: #cfd3cc;
+        background-position:
+          0 0,
+          0 12px,
+          12px -12px,
+          -12px 0;
+        background-size: 24px 24px;
+      }
+
+      iframe {
+        display: block;
+        border: 0;
+        background: white;
+      }
+
+      .frame-shell[data-device="desktop"] iframe {
+        width: 100%;
+      }
+
+      .frame-shell[data-device="mobile"] iframe {
+        flex: 0 0 auto;
+        box-shadow:
+          0 0 0 1px rgba(23, 23, 23, 0.22),
+          0 18px 45px rgba(0, 0, 0, 0.2);
+      }
+
+      .toast {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 20;
+        max-width: min(340px, calc(100% - 32px));
+        padding: 12px 14px;
+        border: 1px solid rgba(90, 143, 107, 0.45);
+        background: #eef4ee;
+        color: #244a32;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .toast[hidden] {
+        display: none;
+      }
+
+      @media (max-width: 900px) {
+        .toolbar {
+          grid-template-columns: 1fr;
+          align-items: stretch;
+        }
+
+        .title-block {
+          order: -1;
+        }
+
+        .gallery-link,
+        .actions,
+        .segmented {
+          width: 100%;
+        }
+
+        .actions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .segmented {
+          grid-auto-columns: 1fr;
+        }
+
+        .frame-shell[data-device="mobile"] {
+          padding: 0;
+        }
+
+        .frame-shell[data-device="mobile"] iframe {
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="toolbar" data-preview-toolbar>
+      <a class="gallery-link" href="/" aria-label="Back to templates">← Templates</a>
+
+      <div class="title-block">
+        <div class="preview-kicker">Preview menu</div>
+        <p class="template-title" data-template-title>
+          Template {firstTemplate.label} · {firstTemplate.title}
+        </p>
+      </div>
+
+      <div class="segmented template-switch" aria-label="Template">
+        {
+          templateData.templates.map((template) => (
+            <button
+              type="button"
+              data-template-key={template.slug}
+              aria-label={`Template ${template.label} - ${template.title}`}
+              aria-pressed={template.slug === firstTemplate.slug ? "true" : "false"}
+            >
+              {template.label}
+            </button>
+          ))
+        }
+      </div>
+
+      <div class="segmented device-switch" aria-label="Preview size">
+        <button type="button" data-device="desktop" aria-pressed="true">
+          Desktop
+        </button>
+        <button type="button" data-device="mobile" aria-pressed="false">
+          Mobile
+        </button>
+      </div>
+
+      <div class="actions">
+        <a
+          class="toolbar-link"
+          href={firstTemplate.src}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-open-link
+        >
+          Open
+        </a>
+        <button class="toolbar-button" type="button" data-copy-link>
+          Copy
+        </button>
+      </div>
+    </header>
+
+    <main class="stage">
+      <div class="frame-shell" data-frame-shell data-device="desktop">
+        <iframe
+          data-preview-frame
+          src={firstTemplate.src}
+          title={`Template ${firstTemplate.label}: ${firstTemplate.title} desktop preview`}
+          sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
+          referrerpolicy="strict-origin-when-cross-origin"
+        ></iframe>
+      </div>
+    </main>
+
+    <p class="toast" data-toast hidden aria-live="polite"></p>
+
+    <script
+      id="template-data"
+      type="application/json"
+      is:inline
+      set:html={JSON.stringify(templateData)}
+    ></script>
+
+    <script is:inline>
+      const data = JSON.parse(document.getElementById("template-data").textContent);
+      const toolbar = document.querySelector("[data-preview-toolbar]");
+      const frameShell = document.querySelector("[data-frame-shell]");
+      const frame = document.querySelector("[data-preview-frame]");
+      const templateTitle = document.querySelector("[data-template-title]");
+      const openLink = document.querySelector("[data-open-link]");
+      const toast = document.querySelector("[data-toast]");
+      const templateButtons = [...document.querySelectorAll("[data-template-key]")];
+      const deviceButtons = [...document.querySelectorAll("button[data-device]")];
+
+      const templates = new Map(
+        data.templates.map((template) => [template.slug, template])
+      );
+      const firstKey = data.templates[0].slug;
+      let state = readStateFromLocation();
+
+      function readStateFromLocation() {
+        const params = new URLSearchParams(window.location.search);
+        const key = templates.has(params.get("d")) ? params.get("d") : firstKey;
+        const device = params.get("device") === "mobile" ? "mobile" : "desktop";
+        return { key, device };
+      }
+
+      function writeState(mode = "push") {
+        const url = new URL(window.location.href);
+        url.searchParams.set("d", state.key);
+        url.searchParams.set("device", state.device);
+        history[mode === "replace" ? "replaceState" : "pushState"](state, "", url);
+      }
+
+      function setToolbarHeight() {
+        document.documentElement.style.setProperty(
+          "--toolbar-height",
+          `${Math.ceil(toolbar.getBoundingClientRect().height)}px`
+        );
+      }
+
+      function resizeFrame() {
+        const availableWidth = frameShell.clientWidth;
+        const availableHeight = frameShell.clientHeight;
+
+        frameShell.dataset.device = state.device;
+        frame.style.height = `${availableHeight}px`;
+
+        if (state.device === "mobile") {
+          const shellPadding = frameShell.clientWidth <= 900 ? 0 : 48;
+          const width = Math.min(390, Math.max(320, availableWidth - shellPadding));
+          frame.style.width = `${width}px`;
+          return;
+        }
+
+        frame.style.width = "100%";
+      }
+
+      function render(mode = "push") {
+        const template = templates.get(state.key) ?? templates.get(firstKey);
+
+        templateTitle.textContent = `Template ${template.label} · ${template.title}`;
+        frame.src = template.src;
+        frame.title = `Template ${template.label}: ${template.title} ${state.device} preview`;
+        openLink.href = template.src;
+
+        for (const button of templateButtons) {
+          button.setAttribute(
+            "aria-pressed",
+            String(button.dataset.templateKey === state.key)
+          );
+        }
+
+        for (const button of deviceButtons) {
+          button.setAttribute(
+            "aria-pressed",
+            String(button.dataset.device === state.device)
+          );
+        }
+
+        writeState(mode);
+        requestAnimationFrame(resizeFrame);
+      }
+
+      for (const button of templateButtons) {
+        button.addEventListener("click", () => {
+          state = { ...state, key: button.dataset.templateKey };
+          render();
+        });
+      }
+
+      for (const button of deviceButtons) {
+        button.addEventListener("click", () => {
+          state = { ...state, device: button.dataset.device };
+          render();
+        });
+      }
+
+      document.querySelector("[data-copy-link]").addEventListener("click", async () => {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(window.location.href);
+          toast.textContent = "Preview link copied.";
+        } else {
+          toast.textContent = window.location.href;
+        }
+
+        toast.hidden = false;
+        window.setTimeout(() => {
+          toast.hidden = true;
+        }, 1800);
+      });
+
+      window.addEventListener("popstate", () => {
+        state = readStateFromLocation();
+        render("replace");
+      });
+
+      new ResizeObserver(() => {
+        setToolbarHeight();
+        resizeFrame();
+      }).observe(toolbar);
+
+      window.addEventListener("resize", resizeFrame);
+      setToolbarHeight();
+      render("replace");
+    </script>
+  </body>
+</html>
