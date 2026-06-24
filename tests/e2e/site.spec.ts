@@ -125,6 +125,24 @@ test("raw templates include embedded Google maps centered on St. Gabriel", async
   }
 });
 
+test("preview shell permits embedded Google map frames", async ({ page }) => {
+  await page.goto("/preview?d=st-margaret-2026/direction-c&device=desktop");
+
+  const template = page.frameLocator("[data-preview-frame]");
+
+  await template.locator("#where-we-meet").scrollIntoViewIfNeeded();
+  await expect(template.locator(".demo-map-embed")).toHaveAttribute(
+    "src",
+    /google\.com\/maps\/embed/
+  );
+  await expect
+    .poll(
+      () => page.frames().some((frame) => frame.url().includes("google.com/maps/embed")),
+      { timeout: 10000 }
+    )
+    .toBe(true);
+});
+
 test("direction b uses real photo-led imagery", async ({ page }) => {
   await page.goto("/designs/st-margaret-2026/direction-b/index.html");
 
@@ -141,6 +159,7 @@ test("direction b uses real photo-led imagery", async ({ page }) => {
     "src",
     /images\.unsplash\.com/
   );
+  await expect(page.getByText("shared table / open hands")).toHaveCount(0);
   await expect(page.getByText("shared table / open hands visual")).toHaveCount(0);
   await expect(page.getByText("Summer 2025 cover")).toHaveCount(0);
 });

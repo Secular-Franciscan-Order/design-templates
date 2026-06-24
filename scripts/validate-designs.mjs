@@ -17,6 +17,7 @@ const sourceContractText = [
 ];
 const placeholderText = [
   "demo-map-link-panel",
+  "shared table / open hands",
   "shared table / open hands visual",
   "Summer 2025 cover"
 ];
@@ -145,7 +146,11 @@ for (const file of await listHtmlFiles(designsRoot)) {
       failures.push(`${file}: Direction B is missing stock photography URLs.`);
     }
 
-    if (!html.includes('class="photo-card"') || !html.includes("<figcaption>shared table / open hands</figcaption>")) {
+    if (
+      !html.includes('class="photo-card"') ||
+      !html.includes('alt="People gathered together around a table"') ||
+      !/class="photo-card"[\s\S]*<img[^>]+images\.unsplash\.com/.test(html)
+    ) {
       failures.push(`${file}: Direction B is missing the shared-table photo slot.`);
     }
 
