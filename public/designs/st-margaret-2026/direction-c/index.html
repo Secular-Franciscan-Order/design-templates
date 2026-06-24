@@ -20,6 +20,13 @@
         --copper: #a8542e;
         --night: #1c1a17;
         --cream: #f1ece0;
+        --faq-group-color: var(--copper);
+        --sticky-bg: rgba(247, 244, 236, 0.96);
+        --sticky-text: var(--muted);
+        --sticky-action-bg: transparent;
+        --sticky-action-text: var(--ink);
+        --sticky-rule: var(--rule);
+        --sticky-radius: 0;
       }
 
       html,
@@ -286,13 +293,8 @@
       .map-panel {
         min-height: 360px;
         border: 1px solid rgba(28, 26, 23, 0.2);
-        background:
-          repeating-linear-gradient(0deg, rgba(28, 26, 23, 0.05) 0 1px, transparent 1px 34px),
-          repeating-linear-gradient(90deg, rgba(28, 26, 23, 0.05) 0 1px, transparent 1px 34px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 24px;
+        background: #e1ded5;
+        overflow: hidden;
       }
 
       .timeline {
@@ -447,6 +449,11 @@
         font-size: 19px;
       }
 
+      .mobile-sticky-cta a {
+        border-bottom: 1.5px solid var(--red);
+        padding-inline: 0;
+      }
+
       footer {
         display: flex;
         flex-wrap: wrap;
@@ -559,7 +566,15 @@
               <div class="fact-row">All Catholics of any rite are welcome. Simply come.</div>
               <p><a class="text-link" href="https://www.google.com/maps/dir/?api=1&destination=St.%20Gabriel%20the%20Archangel%20Church%2C%202250%20E.%20Maule%20Ave.%2C%20Las%20Vegas%2C%20NV%2089118">Get directions →</a></p>
             </div>
-            <div class="map-panel"><div class="demo-map-link-panel"><strong>St. Gabriel the Archangel Church</strong><span>2250 E. Maule Ave., Las Vegas, NV 89118</span><a href="https://www.google.com/maps/dir/?api=1&destination=St.%20Gabriel%20the%20Archangel%20Church%2C%202250%20E.%20Maule%20Ave.%2C%20Las%20Vegas%2C%20NV%2089118">Get directions ↗</a></div></div>
+            <div class="map-panel">
+              <iframe
+                class="demo-map-embed"
+                title="Map to St. Gabriel the Archangel Church"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-115.1270%2C36.0616%2C-115.1170%2C36.0674&amp;layer=mapnik&amp;marker=36.0645042%2C-115.1219976"
+                loading="lazy"
+                referrerpolicy="strict-origin-when-cross-origin"
+              ></iframe>
+            </div>
           </div>
         </section>
 
@@ -593,10 +608,17 @@
         <section id="faq" class="section">
           <div class="container narrow faq-list">
             <div class="center" style="margin-bottom: 50px;"><div class="kicker" style="margin-bottom: 22px;">Frequently Asked</div><h2>Is this for me?</h2></div>
+            <div class="faq-group-title">About the Franciscans</div>
             <details open><summary>Who are the Franciscans?<span class="cmark">+</span></summary><p class="body-copy">We are the spiritual family of Saint Francis of Assisi, who left wealth behind to follow the poor and humble Christ. His family today numbers friars, sisters, and lay men and women - Secular Franciscans - who carry his Gospel way of life into the world.</p></details>
             <details><summary>What does "Secular Franciscan" mean?<span class="cmark">+</span></summary><p class="body-copy">"Secular" means we live in the world - in our homes, families, and work - rather than in a monastery. We are fully Franciscan, and fully part of ordinary life.</p></details>
+            <details><summary>Do you live like monks and nuns?<span class="cmark">+</span></summary><p class="body-copy">No. Secular Franciscans are lay Catholics. We keep our homes, work, families, and responsibilities while following Jesus in the spirit of Saint Francis.</p></details>
+            <div class="faq-group-title">About joining</div>
             <details><summary>Can anyone join the Secular Franciscan Order?<span class="cmark">+</span></summary><p class="body-copy">Any practicing Catholic in good standing - single or married, age 18 or older - who feels drawn to the Franciscan way is welcome to begin discerning with us.</p></details>
+            <details><summary>How long does it take to join?<span class="cmark">+</span></summary><p class="body-copy">The path is intentionally slow: orientation, inquiry, candidacy, and then profession. Each step gives you time to pray, learn, and discern freely.</p></details>
+            <details><summary>What if I'm just curious and not ready to commit?<span class="cmark">+</span></summary><p class="body-copy">Come as you are. Visiting a gathering is a simple way to listen, ask questions, and meet people without making a commitment.</p></details>
+            <div class="faq-group-title">What's expected of me</div>
             <details><summary>What is expected of me if I join?<span class="cmark">+</span></summary><p class="body-copy">A life of daily prayer, regular participation in the Mass, faithful presence at our monthly gatherings, and a heart turned toward the poor and toward peace.</p></details>
+            <details><summary>Do I have to wear a habit?<span class="cmark">+</span></summary><p class="body-copy">No. Secular Franciscans generally wear the Tau cross, a simple sign associated with Saint Francis, rather than a religious habit.</p></details>
           </div>
         </section>
 
@@ -622,6 +644,10 @@
         <div style="color: var(--soft);">Secular Franciscan Order · St. Thomas More Region · Las Vegas, NV</div>
         <div style="font-size: 18px; font-style: italic;">Pax et Bonum</div>
       </footer>
+      <div class="mobile-sticky-cta" data-mobile-cta>
+        <span>Is this your calling?</span>
+        <a href="#contact">Reach out →</a>
+      </div>
     </div>
     <script src="/designs/demo-enhance.js" defer></script>
   </body>

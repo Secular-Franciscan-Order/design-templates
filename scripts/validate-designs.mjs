@@ -8,6 +8,18 @@ const publicRoot = join(root, "public");
 const designsRoot = join(publicRoot, "designs");
 const thumbsRoot = join(publicRoot, "thumbs");
 const failures = [];
+const sourceContractText = [
+  "About the Franciscans",
+  "About joining",
+  "What's expected of me",
+  "What if I'm just curious and not ready to commit?",
+  "Do I have to wear a habit?"
+];
+const placeholderText = [
+  "demo-map-link-panel",
+  "shared table / open hands visual",
+  "Summer 2025 cover"
+];
 
 const assertExists = async (path, label) => {
   try {
@@ -83,6 +95,12 @@ for (const file of await listHtmlFiles(designsRoot)) {
     }
   }
 
+  for (const text of placeholderText) {
+    if (html.includes(text)) {
+      failures.push(`${file}: leftover placeholder text or component "${text}".`);
+    }
+  }
+
   if (html.includes('href="#"')) {
     failures.push(`${file}: leftover dead anchor href="#".`);
   }
@@ -101,6 +119,34 @@ for (const file of await listHtmlFiles(designsRoot)) {
 
   if (!html.includes('name="robots"') || !html.includes("noindex")) {
     failures.push(`${file}: missing noindex robots meta tag.`);
+  }
+
+  if (!html.includes("demo-map-embed") || !html.includes("marker=36.0645042")) {
+    failures.push(`${file}: missing embedded St. Gabriel map.`);
+  }
+
+  if (!html.includes("data-mobile-cta")) {
+    failures.push(`${file}: missing mobile sticky CTA.`);
+  }
+
+  for (const text of sourceContractText) {
+    if (!html.includes(text)) {
+      failures.push(`${file}: missing FAQ source-contract text "${text}".`);
+    }
+  }
+
+  if (file.includes("direction-b")) {
+    if (!html.includes("images.unsplash.com")) {
+      failures.push(`${file}: Direction B is missing stock photography URLs.`);
+    }
+
+    if (!html.includes('class="photo-card"') || !html.includes("<figcaption>shared table / open hands</figcaption>")) {
+      failures.push(`${file}: Direction B is missing the shared-table photo slot.`);
+    }
+
+    if (!html.includes('class="cover"><img')) {
+      failures.push(`${file}: Direction B is missing the newsletter cover image slot.`);
+    }
   }
 }
 

@@ -20,6 +20,11 @@
         --sky: #eaf3f7;
         --cream: #f6f1e7;
         --rule: #dde9e0;
+        --faq-group-color: var(--blue);
+        --sticky-bg: rgba(36, 50, 64, 0.96);
+        --sticky-text: #fff;
+        --sticky-action-bg: var(--blue);
+        --sticky-action-text: #fff;
       }
 
       html,
@@ -158,21 +163,11 @@
         inset: 0;
         background:
           linear-gradient(100deg, rgba(254, 252, 249, 0.98) 0%, rgba(254, 252, 249, 0.9) 42%, rgba(254, 252, 249, 0.2) 100%),
-          linear-gradient(135deg, #cfe0e8, #dbe7da 48%, #f6e3b7);
+          url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80") center / cover;
       }
 
       .hero::after {
-        content: "";
-        position: absolute;
-        inset: auto 7% 9% auto;
-        width: min(46vw, 520px);
-        aspect-ratio: 4 / 3;
-        border-radius: 24px;
-        background:
-          radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.7) 0 9%, transparent 10%),
-          linear-gradient(150deg, rgba(47, 127, 176, 0.22), rgba(90, 143, 107, 0.22)),
-          repeating-linear-gradient(45deg, rgba(47, 127, 176, 0.08) 0 2px, transparent 2px 13px);
-        box-shadow: 0 30px 80px rgba(36, 50, 64, 0.16);
+        display: none;
       }
 
       .hero-content {
@@ -272,16 +267,23 @@
       .photo-card {
         min-height: 420px;
         border-radius: 18px;
-        background:
-          linear-gradient(180deg, transparent 0 48%, rgba(255, 255, 255, 0.82) 49% 100%),
-          repeating-linear-gradient(45deg, rgba(47, 127, 176, 0.08) 0 2px, transparent 2px 11px),
-          #dbe7da;
-        display: flex;
-        align-items: flex-end;
-        padding: 18px;
+        overflow: hidden;
+        position: relative;
+        background: #dbe7da;
       }
 
-      .photo-card span {
+      .photo-card img {
+        width: 100%;
+        height: 100%;
+        min-height: 420px;
+        display: block;
+        object-fit: cover;
+      }
+
+      .photo-card figcaption {
+        position: absolute;
+        left: 18px;
+        bottom: 18px;
         border-radius: 20px;
         background: rgba(255, 255, 255, 0.9);
         color: #5b7a8a;
@@ -345,14 +347,8 @@
       .map-panel {
         min-height: 320px;
         border-radius: 18px;
-        background:
-          repeating-linear-gradient(0deg, rgba(47, 127, 176, 0.07) 0 1px, transparent 1px 30px),
-          repeating-linear-gradient(90deg, rgba(47, 127, 176, 0.07) 0 1px, transparent 1px 30px),
-          #dfe8ec;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 24px;
+        background: #dfe8ec;
+        overflow: hidden;
       }
 
       .step-grid {
@@ -410,16 +406,16 @@
 
       .cover {
         min-height: 180px;
-        background:
-          linear-gradient(135deg, rgba(47, 127, 176, 0.2), rgba(90, 143, 107, 0.2)),
-          repeating-linear-gradient(45deg, rgba(47, 127, 176, 0.08) 0 2px, transparent 2px 11px),
-          #cfe0e8;
-        display: grid;
-        place-items: center;
-        color: #5b7a8a;
-        font-size: 12px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        overflow: hidden;
+        background: #cfe0e8;
+      }
+
+      .cover img {
+        width: 100%;
+        height: 100%;
+        min-height: 180px;
+        display: block;
+        object-fit: cover;
       }
 
       .issue-body {
@@ -567,7 +563,8 @@
           grid-template-columns: 1fr;
         }
 
-        .photo-card {
+        .photo-card,
+        .photo-card img {
           min-height: 280px;
         }
 
@@ -639,7 +636,10 @@
               <h2>Ordinary lay Catholics following Jesus in the joyful way of Francis and Clare.</h2>
               <p class="lead">We're not monks or nuns. We have jobs, families, and busy lives - and we've found that the Franciscan path makes all of it richer. We serve people who have less, care for creation, and bring a little more hope to our corner of Las Vegas.</p>
             </div>
-            <div class="photo-card"><span>shared table / open hands visual</span></div>
+            <figure class="photo-card">
+              <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80" alt="People gathered together around a table" loading="lazy">
+              <figcaption>shared table / open hands</figcaption>
+            </figure>
           </div>
         </section>
 
@@ -656,7 +656,15 @@
                 <div class="info-card green"><div class="info-icon">2</div><div><h3>St. Gabriel the Archangel Church</h3><p class="lead">2250 E. Maule Ave., Las Vegas, NV 89118</p></div></div>
                 <a class="button-primary" href="https://www.google.com/maps/dir/?api=1&destination=St.%20Gabriel%20the%20Archangel%20Church%2C%202250%20E.%20Maule%20Ave.%2C%20Las%20Vegas%2C%20NV%2089118">Get directions →</a>
               </div>
-              <div class="map-panel"><div class="demo-map-link-panel"><strong>St. Gabriel the Archangel Church</strong><span>2250 E. Maule Ave., Las Vegas, NV 89118</span><a href="https://www.google.com/maps/dir/?api=1&destination=St.%20Gabriel%20the%20Archangel%20Church%2C%202250%20E.%20Maule%20Ave.%2C%20Las%20Vegas%2C%20NV%2089118">Get directions ↗</a></div></div>
+              <div class="map-panel">
+                <iframe
+                  class="demo-map-embed"
+                  title="Map to St. Gabriel the Archangel Church"
+                  src="https://www.openstreetmap.org/export/embed.html?bbox=-115.1270%2C36.0616%2C-115.1170%2C36.0674&amp;layer=mapnik&amp;marker=36.0645042%2C-115.1219976"
+                  loading="lazy"
+                  referrerpolicy="strict-origin-when-cross-origin"
+                ></iframe>
+              </div>
             </div>
           </div>
         </section>
@@ -687,7 +695,7 @@
               <a class="button-secondary" href="https://www.stmregionofs.com/the-franciscan-scoop">View all issues →</a>
             </div>
             <div class="newsletter-grid">
-              <a class="feature-issue" href="https://www.stmregionofs.com/_files/ugd/9af1c7_9b9850224ce048f1b3f8ec01bcd755ff.pdf"><div class="cover">Summer 2025 cover</div><div class="issue-body"><span class="tag">NEWEST ISSUE · PDF</span><h3>Summer 2025</h3><p class="lead">Reflections on the Canticle of the Creatures, news from across the St. Thomas More Region, and a warm welcome to our new inquirers.</p></div></a>
+              <a class="feature-issue" href="https://www.stmregionofs.com/_files/ugd/9af1c7_9b9850224ce048f1b3f8ec01bcd755ff.pdf"><div class="cover"><img src="https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=80" alt="Newsletter pages arranged for reading" loading="lazy"></div><div class="issue-body"><span class="tag">NEWEST ISSUE · PDF</span><h3>Summer 2025</h3><p class="lead">Reflections on the Canticle of the Creatures, news from across the St. Thomas More Region, and a warm welcome to our new inquirers.</p></div></a>
               <div class="issue-links">
                 <a href="https://www.stmregionofs.com/_files/ugd/9af1c7_4576aa3d8e104a5ab6c7521c9e3e0ff3.pdf"><strong>Spring 2025</strong><span>PDF ↗</span></a>
                 <a href="https://www.stmregionofs.com/_files/ugd/9af1c7_0342823f945b4817926a75f4400f2311.pdf"><strong>Fall 2024</strong><span>PDF ↗</span></a>
@@ -701,10 +709,17 @@
         <section id="faq" class="section section-mint">
           <div class="faq-list">
             <div class="center" style="margin-bottom: 36px;"><div class="kicker">Good questions</div><h2>Is this for me?</h2></div>
+            <div class="faq-group-title">About the Franciscans</div>
             <details open><summary>Who are the Franciscans?<span class="demo-plus">+</span></summary><p>Followers of St. Francis of Assisi, who gave up wealth to live close to Jesus and the poor. His family today includes friars, sisters, and lay people - Secular Franciscans - living his Gospel spirit in the everyday world.</p></details>
+            <details><summary>What does "Secular Franciscan" mean?<span class="demo-plus">+</span></summary><p>"Secular" means we live in the world - in our homes, families, workplaces, and neighborhoods - rather than in a monastery. We are fully Franciscan and fully part of ordinary life.</p></details>
             <details><summary>Do you live like monks and nuns?<span class="demo-plus">+</span></summary><p>Not at all. We take no monastic vows and we live in our own homes. We keep our jobs, marry, raise families, and bring the Franciscan spirit into ordinary daily life.</p></details>
+            <div class="faq-group-title">About joining</div>
             <details><summary>Can anyone join the Secular Franciscan Order?<span class="demo-plus">+</span></summary><p>Any practicing Catholic - single or married, age 18 or up - who feels drawn to this way of life is warmly welcome to begin discerning with us.</p></details>
+            <details><summary>How long does it take to join?<span class="demo-plus">+</span></summary><p>The path usually begins with orientation, then inquiry, then candidacy. It unfolds over time so you can pray, ask questions, build friendships, and discern freely before profession.</p></details>
+            <details><summary>What if I'm just curious and not ready to commit?<span class="demo-plus">+</span></summary><p>Curiosity is a good beginning. You are welcome to visit a gathering, meet the fraternity, and ask questions with no pressure to continue.</p></details>
+            <div class="faq-group-title">What's expected of me</div>
             <details><summary>What is expected of me if I join?<span class="demo-plus">+</span></summary><p>A life of daily prayer, regular Mass, faithful presence at our monthly gatherings, and a heart open to the poor and to peace - all lived out within your own everyday circumstances.</p></details>
+            <details><summary>Do I have to wear a habit?<span class="demo-plus">+</span></summary><p>No. Secular Franciscans usually wear a simple Tau cross as a sign of our profession and our connection to Saint Francis.</p></details>
           </div>
         </section>
 
@@ -733,6 +748,10 @@
           <div><strong style="color: #fff;">Take the next step</strong><p>Curious whether this is your calling? There's only one way to find out.</p><a class="button-primary" href="#where-we-meet">Come and See →</a></div>
         </div>
       </footer>
+      <div class="mobile-sticky-cta" data-mobile-cta>
+        <span>New here?</span>
+        <a href="#where-we-meet">Come and See →</a>
+      </div>
     </div>
     <script src="/designs/demo-enhance.js" defer></script>
   </body>

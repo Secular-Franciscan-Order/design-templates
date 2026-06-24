@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+const rawTemplates = ["direction-a", "direction-b", "direction-c"];
+
 test("gallery lists website templates without review batch metadata", async ({ page }) => {
   const response = await page.goto("/");
 
@@ -103,4 +105,58 @@ test("raw responsive template has menu and demo form behavior", async ({ page })
   await expect(
     page.getByText("✓ Thanks! This is a demo site — nothing was actually sent.")
   ).toBeVisible();
+});
+
+test("raw templates include embedded maps centered on St. Gabriel", async ({ page }) => {
+  for (const direction of rawTemplates) {
+    await page.goto(`/designs/st-margaret-2026/${direction}/index.html`);
+
+    const map = page.locator(".demo-map-embed");
+
+    await expect(map).toHaveAttribute("src", /openstreetmap\.org\/export\/embed\.html/);
+    await expect(map).toHaveAttribute("src", /marker=36\.0645042/);
+  }
+});
+
+test("direction b uses real photo-led imagery", async ({ page }) => {
+  await page.goto("/designs/st-margaret-2026/direction-b/index.html");
+
+  const heroBackground = await page
+    .locator(".hero")
+    .evaluate((element) => getComputedStyle(element, "::before").backgroundImage);
+
+  expect(heroBackground).toContain("images.unsplash.com");
+  await expect(page.locator(".photo-card img")).toHaveAttribute(
+    "src",
+    /images\.unsplash\.com/
+  );
+  await expect(page.locator(".cover img")).toHaveAttribute(
+    "src",
+    /images\.unsplash\.com/
+  );
+  await expect(page.getByText("shared table / open hands visual")).toHaveCount(0);
+  await expect(page.getByText("Summer 2025 cover")).toHaveCount(0);
+});
+
+test("raw mobile templates keep sticky CTA bars", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 780 });
+
+  for (const direction of rawTemplates) {
+    await page.goto(`/designs/st-margaret-2026/${direction}/index.html`);
+
+    await expect(page.locator("[data-mobile-cta]")).toBeVisible();
+    await expect(page.locator("[data-mobile-cta] a")).toBeVisible();
+  }
+});
+
+test("raw templates keep grouped FAQ reassurance copy", async ({ page }) => {
+  for (const direction of rawTemplates) {
+    await page.goto(`/designs/st-margaret-2026/${direction}/index.html`);
+
+    await expect(page.getByText("About the Franciscans")).toBeVisible();
+    await expect(page.getByText("About joining")).toBeVisible();
+    await expect(page.getByText("What's expected of me")).toBeVisible();
+    await expect(page.getByText("What if I'm just curious")).toBeVisible();
+    await expect(page.getByText("Do I have to wear a habit?")).toBeVisible();
+  }
 });
