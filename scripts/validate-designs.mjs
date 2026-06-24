@@ -1,5 +1,5 @@
 import { access, readdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -64,6 +64,41 @@ const listHtmlFiles = async (directory) => {
   }
 };
 
+const isExternalReference = (value) =>
+  /^(?:[a-z]+:)?\/\//i.test(value) ||
+  /^(?:data|mailto|tel|javascript):/i.test(value) ||
+  value.startsWith("#");
+
+const cleanAssetReference = (value) => value.split("#")[0].split("?")[0];
+
+const assertLocalReferencesExist = async (file, html) => {
+  const references = new Set();
+  const patterns = [
+    /\b(?:src|href)=["']([^"']+)["']/g,
+    /url\(["']?([^"')]+)["']?\)/g
+  ];
+
+  for (const pattern of patterns) {
+    for (const match of html.matchAll(pattern)) {
+      const value = cleanAssetReference(match[1]);
+
+      if (!value || isExternalReference(value)) {
+        continue;
+      }
+
+      references.add(value);
+    }
+  }
+
+  for (const reference of references) {
+    const path = reference.startsWith("/")
+      ? join(publicRoot, reference.replace(/^\//, ""))
+      : join(dirname(file), reference);
+
+    await assertExists(path, `${file} local asset ${reference}`);
+  }
+};
+
 await assertExists(join(publicRoot, "_headers"), "Cloudflare Pages headers");
 
 const manifest = await readJson(manifestPath);
@@ -89,6 +124,11 @@ for (const template of manifest?.templates ?? []) {
 
 for (const file of await listHtmlFiles(designsRoot)) {
   const html = await readFile(file, "utf8");
+  const normalizedFile = file.replaceAll("\\", "/");
+  const isDirectionTemplate = /\/direction-[abc]\/index\.html$/.test(normalizedFile);
+  const isCurrentSiteTemplate = /\/current-site\/index\.html$/.test(normalizedFile);
+
+  await assertLocalReferencesExist(file, html);
 
   for (const pattern of ["support.js", "<x-dc", "design_doc_mode", "data-drags-parent", "data-screen-label"]) {
     if (html.includes(pattern)) {
@@ -131,13 +171,15 @@ for (const file of await listHtmlFiles(designsRoot)) {
     failures.push(`${file}: missing embedded Google map for St. Gabriel.`);
   }
 
-  if (!html.includes("data-mobile-cta")) {
+  if (isDirectionTemplate && !html.includes("data-mobile-cta")) {
     failures.push(`${file}: missing mobile sticky CTA.`);
   }
 
-  for (const text of sourceContractText) {
-    if (!html.includes(text)) {
-      failures.push(`${file}: missing FAQ source-contract text "${text}".`);
+  if (isDirectionTemplate) {
+    for (const text of sourceContractText) {
+      if (!html.includes(text)) {
+        failures.push(`${file}: missing FAQ source-contract text "${text}".`);
+      }
     }
   }
 
@@ -156,6 +198,23 @@ for (const file of await listHtmlFiles(designsRoot)) {
 
     if (!html.includes('class="cover"><img')) {
       failures.push(`${file}: Direction B is missing the newsletter cover image slot.`);
+    }
+  }
+
+  if (isCurrentSiteTemplate) {
+    for (const text of [
+      "ST. MARGARET OF CORTONA FRATERNITY",
+      "Current Site",
+      "View current live site",
+      "assets/images/wix-page-background.jpg",
+      "assets/images/st-margaret-of-cortona.jpg",
+      "assets/fonts/avenir-lt-w05_35-light.woff2",
+      "assets/fonts/avenir-lt-w01_35-light1475496.woff2",
+      "assets/fonts/questrial.woff2"
+    ]) {
+      if (!html.includes(text)) {
+        failures.push(`${file}: missing current-site template contract text "${text}".`);
+      }
     }
   }
 }

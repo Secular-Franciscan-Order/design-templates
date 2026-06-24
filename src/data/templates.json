@@ -23,6 +23,14 @@
       "blurb": "Minimal, editorial, and typography-led with ivory paper, ink, oxblood, and quiet rules.",
       "thumb": "st-margaret-2026/direction-c.jpg",
       "src": "/designs/st-margaret-2026/direction-c/index.html"
+    },
+    {
+      "slug": "st-margaret-2026/current-site",
+      "label": "D",
+      "title": "Current Site",
+      "blurb": "Simple, content-first, traditional site layout based on the current fraternity website.",
+      "thumb": "st-margaret-2026/current-site.jpg",
+      "src": "/designs/st-margaret-2026/current-site/index.html"
     }
   ]
 }
