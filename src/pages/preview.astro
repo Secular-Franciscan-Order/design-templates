@@ -1,0 +1,468 @@
+---
+import reviewData from "../data/reviews.json";
+
+const pageTitle = "Design Preview";
+const pageDescription =
+  "Theme-style design preview shell for live community review.";
+const firstReview = reviewData.reviews[0];
+const firstDesign = firstReview.designs[0];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="description" content={pageDescription} />
+    <title>{pageTitle}</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --toolbar-height: 96px;
+        --bg: #ece7dc;
+        --panel: #fffdf8;
+        --ink: #171717;
+        --muted: #626861;
+        --rule: rgba(23, 23, 23, 0.14);
+        --blue: #2f7fb0;
+        --green: #5a8f6b;
+        --rust: #8d3d2a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      a,
+      button {
+        font: inherit;
+      }
+
+      a:focus-visible,
+      button:focus-visible {
+        outline: 3px solid var(--blue);
+        outline-offset: 3px;
+      }
+
+      .toolbar {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 10;
+        display: grid;
+        grid-template-columns: auto minmax(180px, 1fr) auto auto auto;
+        gap: 14px;
+        align-items: center;
+        min-height: 76px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--rule);
+        background: rgba(255, 253, 248, 0.96);
+        box-shadow: 0 1px 10px rgba(0, 0, 0, 0.08);
+        backdrop-filter: blur(12px);
+      }
+
+      .gallery-link,
+      .toolbar-link,
+      .toolbar-button {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--rule);
+        background: var(--panel);
+        color: var(--ink);
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .gallery-link {
+        gap: 8px;
+        padding: 0 14px;
+        font-weight: 800;
+      }
+
+      .title-block {
+        min-width: 0;
+      }
+
+      .review-title {
+        margin: 0;
+        overflow: hidden;
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.2;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .design-title {
+        margin-top: 3px;
+        overflow: hidden;
+        color: var(--muted);
+        font-size: 13px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .segmented {
+        display: inline-grid;
+        grid-auto-flow: column;
+        gap: 0;
+        border: 1px solid var(--rule);
+        background: #eee8dc;
+      }
+
+      .segmented button {
+        min-width: 52px;
+        min-height: 44px;
+        border: 0;
+        border-right: 1px solid var(--rule);
+        background: transparent;
+        color: var(--ink);
+        cursor: pointer;
+        font-weight: 800;
+      }
+
+      .segmented button:last-child {
+        border-right: 0;
+      }
+
+      .segmented button[aria-pressed="true"] {
+        background: var(--ink);
+        color: #fffdf8;
+      }
+
+      .device-switch button {
+        min-width: 88px;
+      }
+
+      .actions {
+        display: inline-flex;
+        gap: 8px;
+      }
+
+      .toolbar-link,
+      .toolbar-button {
+        padding: 0 12px;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .stage {
+        height: 100dvh;
+        padding-top: var(--toolbar-height);
+      }
+
+      .frame-shell {
+        width: 100%;
+        height: calc(100dvh - var(--toolbar-height));
+        overflow: hidden;
+        background:
+          linear-gradient(45deg, rgba(0, 0, 0, 0.035) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(0, 0, 0, 0.035) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(0, 0, 0, 0.035) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(0, 0, 0, 0.035) 75%);
+        background-color: #dcd5ca;
+        background-position:
+          0 0,
+          0 12px,
+          12px -12px,
+          -12px 0;
+        background-size: 24px 24px;
+      }
+
+      .frame-shell[data-device="mobile"] {
+        overflow: auto;
+        display: flex;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      iframe {
+        display: block;
+        border: 0;
+        background: white;
+        transform-origin: top left;
+      }
+
+      .frame-shell[data-device="mobile"] iframe {
+        flex: 0 0 auto;
+        box-shadow: 0 0 0 1px rgba(23, 23, 23, 0.18), 0 18px 45px rgba(0, 0, 0, 0.18);
+      }
+
+      .toast {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 20;
+        max-width: min(340px, calc(100% - 32px));
+        padding: 12px 14px;
+        border: 1px solid rgba(90, 143, 107, 0.45);
+        background: #eef4ee;
+        color: #244a32;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .toast[hidden] {
+        display: none;
+      }
+
+      @media (max-width: 900px) {
+        .toolbar {
+          grid-template-columns: 1fr;
+          align-items: stretch;
+        }
+
+        .title-block {
+          order: -1;
+        }
+
+        .gallery-link,
+        .actions,
+        .segmented {
+          width: 100%;
+        }
+
+        .actions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .segmented {
+          grid-auto-columns: 1fr;
+        }
+
+        .frame-shell[data-device="mobile"] {
+          padding: 0;
+        }
+
+        .frame-shell[data-device="mobile"] iframe {
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="toolbar" data-preview-toolbar>
+      <a class="gallery-link" href="/" aria-label="Back to gallery">← Gallery</a>
+
+      <div class="title-block">
+        <p class="review-title" data-review-title>{firstReview.title}</p>
+        <div class="design-title" data-design-title>
+          Direction {firstDesign.label} · {firstDesign.title}
+        </div>
+      </div>
+
+      <div class="segmented design-switch" aria-label="Design direction">
+        {
+          firstReview.designs.map((design) => (
+            <button
+              type="button"
+              data-design-key={`${firstReview.slug}/${design.slug}`}
+              aria-pressed={design.slug === firstDesign.slug ? "true" : "false"}
+            >
+              {design.label}
+            </button>
+          ))
+        }
+      </div>
+
+      <div class="segmented device-switch" aria-label="Device">
+        <button type="button" data-device="desktop" aria-pressed="true">
+          Desktop
+        </button>
+        <button type="button" data-device="mobile" aria-pressed="false">
+          Mobile
+        </button>
+      </div>
+
+      <div class="actions">
+        <a
+          class="toolbar-link"
+          href={firstDesign.desktop.src}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-open-link
+        >
+          Open
+        </a>
+        <button class="toolbar-button" type="button" data-copy-link>
+          Copy
+        </button>
+      </div>
+    </header>
+
+    <main class="stage">
+      <div class="frame-shell" data-frame-shell data-device="desktop">
+        <iframe
+          data-preview-frame
+          src={firstDesign.desktop.src}
+          title={`${firstReview.title} - Direction ${firstDesign.label}: ${firstDesign.title} desktop preview`}
+          sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
+          referrerpolicy="strict-origin-when-cross-origin"
+        ></iframe>
+      </div>
+    </main>
+
+    <p class="toast" data-toast hidden aria-live="polite"></p>
+
+    <script
+      id="review-data"
+      type="application/json"
+      is:inline
+      set:html={JSON.stringify(reviewData)}
+    ></script>
+
+    <script is:inline>
+      const data = JSON.parse(document.getElementById("review-data").textContent);
+      const toolbar = document.querySelector("[data-preview-toolbar]");
+      const frameShell = document.querySelector("[data-frame-shell]");
+      const frame = document.querySelector("[data-preview-frame]");
+      const reviewTitle = document.querySelector("[data-review-title]");
+      const designTitle = document.querySelector("[data-design-title]");
+      const openLink = document.querySelector("[data-open-link]");
+      const toast = document.querySelector("[data-toast]");
+      const designButtons = [...document.querySelectorAll("[data-design-key]")];
+      const deviceButtons = [...document.querySelectorAll("button[data-device]")];
+
+      const designs = new Map();
+
+      for (const review of data.reviews) {
+        for (const design of review.designs) {
+          designs.set(`${review.slug}/${design.slug}`, { review, design });
+        }
+      }
+
+      const firstKey = `${data.reviews[0].slug}/${data.reviews[0].designs[0].slug}`;
+      let state = readStateFromLocation();
+
+      function readStateFromLocation() {
+        const params = new URLSearchParams(window.location.search);
+        const key = designs.has(params.get("d")) ? params.get("d") : firstKey;
+        const device = params.get("device") === "mobile" ? "mobile" : "desktop";
+        return { key, device };
+      }
+
+      function writeState(mode = "push") {
+        const url = new URL(window.location.href);
+        url.searchParams.set("d", state.key);
+        url.searchParams.set("device", state.device);
+        history[mode === "replace" ? "replaceState" : "pushState"](state, "", url);
+      }
+
+      function setToolbarHeight() {
+        document.documentElement.style.setProperty(
+          "--toolbar-height",
+          `${Math.ceil(toolbar.getBoundingClientRect().height)}px`
+        );
+      }
+
+      function resizeFrame() {
+        const { design } = designs.get(state.key);
+        const availableWidth = frameShell.clientWidth;
+        const availableHeight = frameShell.clientHeight;
+
+        frameShell.dataset.device = state.device;
+
+        if (state.device === "mobile") {
+          const width = design.mobile.width ?? design.mobileWidth ?? 390;
+          frame.style.width = `${width}px`;
+          frame.style.height = `${availableHeight}px`;
+          frame.style.transform = "none";
+          return;
+        }
+
+        const authoredWidth = design.desktop.width ?? design.authoredWidth;
+        const scale = Math.min(1, availableWidth / authoredWidth);
+
+        frame.style.width = `${authoredWidth}px`;
+        frame.style.height = `${Math.ceil(availableHeight / scale)}px`;
+        frame.style.transform = `scale(${scale})`;
+      }
+
+      function render(mode = "push") {
+        const entry = designs.get(state.key) ?? designs.get(firstKey);
+        const { review, design } = entry;
+        const current = design[state.device];
+
+        reviewTitle.textContent = review.title;
+        designTitle.textContent = `Direction ${design.label} · ${design.title}`;
+        frame.src = current.src;
+        frame.title = `${review.title} - Direction ${design.label}: ${design.title} ${state.device} preview`;
+        openLink.href = current.src;
+
+        for (const button of designButtons) {
+          button.setAttribute(
+            "aria-pressed",
+            String(button.dataset.designKey === state.key)
+          );
+        }
+
+        for (const button of deviceButtons) {
+          button.setAttribute(
+            "aria-pressed",
+            String(button.dataset.device === state.device)
+          );
+        }
+
+        writeState(mode);
+        requestAnimationFrame(resizeFrame);
+      }
+
+      for (const button of designButtons) {
+        button.addEventListener("click", () => {
+          state = { ...state, key: button.dataset.designKey };
+          render();
+        });
+      }
+
+      for (const button of deviceButtons) {
+        button.addEventListener("click", () => {
+          state = { ...state, device: button.dataset.device };
+          render();
+        });
+      }
+
+      document.querySelector("[data-copy-link]").addEventListener("click", async () => {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(window.location.href);
+          toast.textContent = "Preview link copied.";
+        } else {
+          toast.textContent = window.location.href;
+        }
+
+        toast.hidden = false;
+        window.setTimeout(() => {
+          toast.hidden = true;
+        }, 1800);
+      });
+
+      window.addEventListener("popstate", () => {
+        state = readStateFromLocation();
+        render("replace");
+      });
+
+      new ResizeObserver(() => {
+        setToolbarHeight();
+        resizeFrame();
+      }).observe(toolbar);
+
+      window.addEventListener("resize", resizeFrame);
+      setToolbarHeight();
+      render("replace");
+    </script>
+  </body>
+</html>

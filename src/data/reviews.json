@@ -1,3 +1,86 @@
 {
-  "reviews": []
+  "reviews": [
+    {
+      "slug": "st-margaret-2026",
+      "title": "St. Margaret Redesign",
+      "date": "June 2026",
+      "status": "Ready for review",
+      "summary": "Three homepage design directions for the St. Margaret of Cortona Fraternity redesign.",
+      "newsletterLinks": [
+        {
+          "title": "Summer 2025",
+          "url": "https://www.stmregionofs.com/_files/ugd/9af1c7_9b9850224ce048f1b3f8ec01bcd755ff.pdf"
+        },
+        {
+          "title": "Spring 2025",
+          "url": "https://www.stmregionofs.com/_files/ugd/9af1c7_4576aa3d8e104a5ab6c7521c9e3e0ff3.pdf"
+        },
+        {
+          "title": "Fall 2024",
+          "url": "https://www.stmregionofs.com/_files/ugd/9af1c7_0342823f945b4817926a75f4400f2311.pdf"
+        },
+        {
+          "title": "Summer 2024",
+          "url": "https://www.stmregionofs.com/_files/ugd/9af1c7_d96705f0f4b24d7d82e6a6e2931debcc.pdf"
+        },
+        {
+          "title": "Spring 2024",
+          "url": "https://www.stmregionofs.com/_files/ugd/96201f_e83f9320a6b84a69976456b8d00949d6.pdf"
+        }
+      ],
+      "designs": [
+        {
+          "slug": "direction-a",
+          "label": "A",
+          "title": "The Pilgrim's Path",
+          "blurb": "Traditional, sacred, and illustration-led with parchment, espresso, terracotta, and Franciscan ornament.",
+          "thumb": "st-margaret-2026/direction-a.jpg",
+          "authoredWidth": 1320,
+          "mobileWidth": 390,
+          "desktop": {
+            "src": "/designs/st-margaret-2026/direction-a/desktop.html",
+            "width": 1320
+          },
+          "mobile": {
+            "src": "/designs/st-margaret-2026/direction-a/mobile.html",
+            "width": 390
+          }
+        },
+        {
+          "slug": "direction-b",
+          "label": "B",
+          "title": "Come and See",
+          "blurb": "Warm, modern, and welcoming with sky blue, soft green, rounded cards, and human-friendly pacing.",
+          "thumb": "st-margaret-2026/direction-b.jpg",
+          "authoredWidth": 1320,
+          "mobileWidth": 390,
+          "desktop": {
+            "src": "/designs/st-margaret-2026/direction-b/desktop.html",
+            "width": 1320
+          },
+          "mobile": {
+            "src": "/designs/st-margaret-2026/direction-b/mobile.html",
+            "width": 390
+          }
+        },
+        {
+          "slug": "direction-c",
+          "label": "C",
+          "title": "Gospel to Life",
+          "blurb": "Minimal, editorial, and typography-led with ivory paper, ink, oxblood, and quiet rules.",
+          "thumb": "st-margaret-2026/direction-c.jpg",
+          "authoredWidth": 1280,
+          "mobileWidth": 390,
+          "desktop": {
+            "src": "/designs/st-margaret-2026/direction-c/desktop.html",
+            "width": 1280
+          },
+          "mobile": {
+            "src": "/designs/st-margaret-2026/direction-c/mobile.html",
+            "width": 390
+          }
+        }
+      ]
+    }
+  ]
 }
