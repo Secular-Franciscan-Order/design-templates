@@ -107,14 +107,21 @@ test("raw responsive template has menu and demo form behavior", async ({ page })
   ).toBeVisible();
 });
 
-test("raw templates include embedded maps centered on St. Gabriel", async ({ page }) => {
+test("raw templates include embedded Google maps centered on St. Gabriel", async ({ page }) => {
   for (const direction of rawTemplates) {
     await page.goto(`/designs/st-margaret-2026/${direction}/index.html`);
 
     const map = page.locator(".demo-map-embed");
 
-    await expect(map).toHaveAttribute("src", /openstreetmap\.org\/export\/embed\.html/);
-    await expect(map).toHaveAttribute("src", /marker=36\.0645042/);
+    await expect(map).toHaveAttribute("src", /google\.com\/maps\/embed/);
+    await expect(map).toHaveAttribute(
+      "src",
+      /St\.%20Gabriel%20the%20Archangel%20Catholic%20Church/
+    );
+    await expect(map).toHaveAttribute(
+      "src",
+      /0x80c8cf8dbd7bbb27%3A0x79aa173c20f43d86/
+    );
   }
 });
 

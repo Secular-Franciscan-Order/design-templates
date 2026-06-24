@@ -121,8 +121,13 @@ for (const file of await listHtmlFiles(designsRoot)) {
     failures.push(`${file}: missing noindex robots meta tag.`);
   }
 
-  if (!html.includes("demo-map-embed") || !html.includes("marker=36.0645042")) {
-    failures.push(`${file}: missing embedded St. Gabriel map.`);
+  if (
+    !html.includes("demo-map-embed") ||
+    !html.includes("https://www.google.com/maps/embed") ||
+    !html.includes("St.%20Gabriel%20the%20Archangel%20Catholic%20Church") ||
+    !html.includes("0x80c8cf8dbd7bbb27%3A0x79aa173c20f43d86")
+  ) {
+    failures.push(`${file}: missing embedded Google map for St. Gabriel.`);
   }
 
   if (!html.includes("data-mobile-cta")) {
