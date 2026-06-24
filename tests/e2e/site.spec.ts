@@ -6,16 +6,26 @@ test("gallery lists website templates without review batch metadata", async ({ p
   const response = await page.goto("/");
 
   expect(response?.status()).toBe(200);
-  await expect(page).toHaveTitle("Website Templates");
+  await expect(page).toHaveTitle("Websites for Secular Franciscan Fraternities");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
     "content",
-    "noindex,nofollow"
+    "index,follow"
+  );
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    "href",
+    "https://ofs-demos.endian.dev/"
   );
   await expect(
     page.getByRole("heading", {
-      name: "Choose a template for your website."
+      name: "Help people find your fraternity."
     })
   ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "bill@endian.dev" })
+  ).toHaveAttribute(
+    "href",
+    "mailto:bill@endian.dev?subject=OFS%20Community%20Website%20Inquiry"
+  );
   await expect(page.getByRole("link", { name: /The Pilgrim's Path/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Come and See/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Gospel to Life/ })).toBeVisible();

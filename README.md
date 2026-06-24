@@ -30,5 +30,6 @@ pnpm test:e2e
   `corepack enable && corepack prepare pnpm@11.5.0 --activate && pnpm install --frozen-lockfile && pnpm build`
 - Output directory: `dist`
 
-The site is intentionally unlisted and noindexed. Headers are defined in
+The landing page is indexed so fraternities can find the site through search;
+the template demos and preview viewer remain noindexed. Headers are defined in
 `public/_headers`.

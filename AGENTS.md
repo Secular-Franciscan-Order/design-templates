@@ -38,9 +38,11 @@ The production Cloudflare Pages project uses:
   `corepack enable && corepack prepare pnpm@11.5.0 --activate && pnpm install --frozen-lockfile && pnpm build`
 - Output directory: `dist`
 
-Pages response headers live in `public/_headers`. Keep the deployed demo
-unlisted and noindexed unless the project owner explicitly changes that
-decision.
+Pages response headers live in `public/_headers`. The landing page (`/`) is
+indexable so fraternities can discover the site through search. The design
+demos (`/designs/*`) and the preview viewer (`/preview`) are kept out of
+search via `X-Robots-Tag` / `meta robots` (noindex). Keep that split unless
+the project owner explicitly changes the decision.
 
 ## Boundaries
 
@@ -49,6 +51,6 @@ decision.
 - Do not add `wrangler.jsonc` for git-connected Pages deployments.
 - Keep design source archives, scratch exports, and generated thumbnails out of
   git unless they are intentional optimized site assets.
-- The demo pages may be public, but they should remain noindexed template
-  previews. Avoid committing secrets, private contact lists, `.env` files,
-  Cloudflare tokens, or private configuration.
+- The landing page is public and indexed, but the demo pages should remain
+  noindexed template previews. Avoid committing secrets, private contact
+  lists, `.env` files, Cloudflare tokens, or private configuration.

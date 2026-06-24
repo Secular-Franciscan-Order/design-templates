@@ -1,0 +1,7 @@
+# https://ofs-demos.endian.dev
+# The landing page is indexable; design demos and the preview viewer
+# are kept out of search via X-Robots-Tag / meta robots (noindex).
+User-agent: *
+Allow: /
+
+Sitemap: https://ofs-demos.endian.dev/sitemap.xml
