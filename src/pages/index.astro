@@ -1,9 +1,30 @@
 ---
 import templateData from "../data/templates.json";
 
-const pageTitle = "Website Templates";
+const siteUrl = "https://ofs-demos.endian.dev";
+const pageTitle = "Websites for Secular Franciscan Fraternities";
 const pageDescription =
-  "Unlisted template-preview menu for choosing a website design.";
+  "Simple, welcoming websites for Secular Franciscan (OFS) fraternities. Browse ready-made designs, pick the one you like, and I'll build it for your community.";
+const canonicalUrl = `${siteUrl}/`;
+const ogImage = `${siteUrl}/thumbs/st-margaret-2026/direction-a.jpg`;
+const contactEmail = "bill@endian.dev";
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  name: pageTitle,
+  description: pageDescription,
+  url: canonicalUrl,
+  email: contactEmail,
+  image: ogImage,
+  serviceType:
+    "Website design and development for Secular Franciscan fraternities",
+  audience: {
+    "@type": "Audience",
+    audienceType: "Secular Franciscan Order fraternities"
+  }
+};
+
 const templates = templateData.templates;
 ---
 
@@ -12,9 +33,29 @@ const templates = templateData.templates;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex,nofollow" />
+    <meta name="robots" content="index,follow" />
     <meta name="description" content={pageDescription} />
     <title>{pageTitle}</title>
+    <link rel="canonical" href={canonicalUrl} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Franciscan Fraternity Websites" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content="en_US" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <script
+      is:inline
+      type="application/ld+json"
+      set:html={JSON.stringify(structuredData)}
+    />
     <style>
       :root {
         color-scheme: light;
@@ -63,11 +104,15 @@ const templates = templateData.templates;
 
       .topline {
         display: flex;
-        align-items: baseline;
+        align-items: flex-start;
         justify-content: space-between;
-        gap: 24px;
+        gap: 32px;
         padding-bottom: 28px;
         border-bottom: 1px solid var(--rule);
+      }
+
+      .intro {
+        max-width: 620px;
       }
 
       .eyebrow {
@@ -87,14 +132,60 @@ const templates = templateData.templates;
       }
 
       .lede {
-        max-width: 460px;
-        margin: 0;
+        max-width: 540px;
+        margin: 16px 0 0;
         color: var(--muted);
         font-size: 17px;
       }
 
+      .contact-card {
+        flex: 0 0 auto;
+        width: min(280px, 100%);
+        display: grid;
+        gap: 6px;
+        padding: 20px;
+        border: 1px solid var(--rule);
+        background: var(--panel);
+      }
+
+      .contact-label {
+        margin: 0;
+        color: var(--rust);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .contact-email {
+        color: var(--blue);
+        font-size: 19px;
+        font-weight: 800;
+        text-decoration: none;
+        word-break: break-word;
+      }
+
+      .contact-email:hover {
+        text-decoration: underline;
+      }
+
+      .contact-note {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
       .template-list {
         margin-top: 38px;
+      }
+
+      .section-label {
+        margin: 0 0 16px;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
       }
 
       .template-grid {
@@ -191,8 +282,9 @@ const templates = templateData.templates;
           font-size: 34px;
         }
 
-        .lede {
-          margin-top: 14px;
+        .contact-card {
+          width: 100%;
+          margin-top: 24px;
         }
 
         .template-grid {
@@ -204,17 +296,29 @@ const templates = templateData.templates;
   <body>
     <main>
       <header class="topline">
-        <div>
-          <p class="eyebrow">Website templates</p>
-          <h1>Choose a template for your website.</h1>
+        <div class="intro">
+          <p class="eyebrow">For Secular Franciscan fraternities</p>
+          <h1>Help people find your fraternity.</h1>
+          <p class="lede">
+            I build simple, warm websites for Secular Franciscan communities.
+            Each design below is a complete, working site — picture your
+            fraternity in its place, then get in touch and I'll build it for you.
+          </p>
         </div>
-        <p class="lede">
-          Browse these live, ready-to-use templates. Pick the one you like,
-          then I'll build your site on it.
-        </p>
+        <aside class="contact-card" aria-label="Contact">
+          <p class="contact-label">Get in touch</p>
+          <a
+            class="contact-email"
+            href="mailto:bill@endian.dev?subject=OFS%20Community%20Website%20Inquiry"
+          >
+            bill@endian.dev
+          </a>
+          <p class="contact-note">See one you like? Email me.</p>
+        </aside>
       </header>
 
       <section class="template-list" aria-label="Available templates">
+        <h2 class="section-label">Choose a design</h2>
         <div class="template-grid">
           {
             templates.map((template) => (
