@@ -1,7 +1,6 @@
 import { expect, test } from "@playwright/test";
 
 const rawTemplates = ["direction-a", "direction-b", "direction-c"];
-const mapTemplates = [...rawTemplates, "current-site"];
 
 test("gallery lists website templates without review batch metadata", async ({ page }) => {
   const response = await page.goto("/");
@@ -117,7 +116,7 @@ test("raw responsive template has menu and demo form behavior", async ({ page })
 });
 
 test("raw templates include embedded Google maps centered on St. Gabriel", async ({ page }) => {
-  for (const direction of mapTemplates) {
+  for (const direction of rawTemplates) {
     await page.goto(`/designs/st-margaret-2026/${direction}/index.html`);
 
     const map = page.locator(".demo-map-embed");
@@ -132,6 +131,20 @@ test("raw templates include embedded Google maps centered on St. Gabriel", async
       /0x80c8cf8dbd7bbb27%3A0x79aa173c20f43d86/
     );
   }
+
+  await page.goto("/designs/st-margaret-2026/current-site/who-we-are/index.html");
+
+  const currentSiteMap = page.locator(".demo-map-embed");
+
+  await expect(currentSiteMap).toHaveAttribute("src", /google\.com\/maps\/embed/);
+  await expect(currentSiteMap).toHaveAttribute(
+    "src",
+    /St\.%20Gabriel%20the%20Archangel%20Catholic%20Church/
+  );
+  await expect(currentSiteMap).toHaveAttribute(
+    "src",
+    /0x80c8cf8dbd7bbb27%3A0x79aa173c20f43d86/
+  );
 });
 
 test("current site template loads through desktop and mobile preview states", async ({ page }) => {
@@ -150,6 +163,13 @@ test("current site template loads through desktop and mobile preview states", as
     })
   ).toBeVisible();
 
+  await template.getByRole("link", { name: "Who We Are" }).click();
+  await expect(template.getByRole("heading", { name: "Who We Are" })).toBeVisible();
+  await expect(template.locator(".demo-map-embed")).toHaveAttribute(
+    "src",
+    /google\.com\/maps\/embed/
+  );
+
   await page.getByRole("button", { name: "Mobile" }).click();
   expect(new URL(page.url()).searchParams.get("device")).toBe("mobile");
   await expect(page.locator("[data-frame-shell]")).toHaveAttribute(
@@ -157,7 +177,13 @@ test("current site template loads through desktop and mobile preview states", as
     "mobile"
   );
   await expect(frame).toHaveAttribute("src", /current-site\/index\.html$/);
-  await expect(template.getByRole("link", { name: "Contact" })).toBeVisible();
+  await template.getByRole("link", { name: "Get Involved" }).click();
+  await expect(
+    template.getByRole("heading", {
+      name: "Is God Calling You to the Secular Franciscan Order?"
+    })
+  ).toBeVisible();
+  await expect(template.getByRole("heading", { name: "Contact" })).toBeVisible();
 });
 
 test("preview shell permits embedded Google map frames", async ({ page }) => {
@@ -202,6 +228,7 @@ test("direction b uses real photo-led imagery", async ({ page }) => {
 test("current site template uses local assets and thumbnail", async ({ page, request }) => {
   const assets = [
     "/thumbs/st-margaret-2026/current-site.jpg",
+    "/designs/st-margaret-2026/current-site/site.css",
     "/designs/st-margaret-2026/current-site/assets/images/st-margaret-of-cortona.jpg",
     "/designs/st-margaret-2026/current-site/assets/images/wix-page-background.jpg",
     "/designs/st-margaret-2026/current-site/assets/fonts/avenir-lt-w05_35-light.woff2",
@@ -214,6 +241,19 @@ test("current site template uses local assets and thumbnail", async ({ page, req
     expect(response.ok(), asset).toBe(true);
   }
 
+  for (const currentSitePage of [
+    "index.html",
+    "who-we-are/index.html",
+    "get-involved/index.html",
+    "news/index.html",
+    "faq/index.html"
+  ]) {
+    const response = await request.get(
+      `/designs/st-margaret-2026/current-site/${currentSitePage}`
+    );
+    expect(response.ok(), currentSitePage).toBe(true);
+  }
+
   await page.goto("/designs/st-margaret-2026/current-site/index.html");
 
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
@@ -224,6 +264,10 @@ test("current site template uses local assets and thumbnail", async ({ page, req
   await expect(page.locator(".home-portrait")).toHaveAttribute(
     "src",
     /assets\/images\/st-margaret-of-cortona\.jpg/
+  );
+  await expect(page.getByRole("link", { name: "Who We Are" })).toHaveAttribute(
+    "href",
+    /who-we-are\/$/
   );
 
   const backgroundImage = await page.evaluate(
