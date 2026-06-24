@@ -1,5 +1,5 @@
 import { access, readdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -39,7 +39,7 @@ const readJson = async (path) => {
   }
 };
 
-const listHtmlFiles = async (directory) => {
+const listFilesByExtension = async (directory, extension) => {
   try {
     const entries = await readdir(directory, { withFileTypes: true });
     const files = [];
@@ -48,8 +48,8 @@ const listHtmlFiles = async (directory) => {
       const path = join(directory, entry.name);
 
       if (entry.isDirectory()) {
-        files.push(...(await listHtmlFiles(path)));
-      } else if (entry.isFile() && entry.name.endsWith(".html")) {
+        files.push(...(await listFilesByExtension(path, extension)));
+      } else if (entry.isFile() && entry.name.endsWith(extension)) {
         files.push(path);
       }
     }
@@ -64,7 +64,60 @@ const listHtmlFiles = async (directory) => {
   }
 };
 
+const listHtmlFiles = (directory) => listFilesByExtension(directory, ".html");
+const listCssFiles = (directory) => listFilesByExtension(directory, ".css");
+
+const isExternalReference = (value) =>
+  /^(?:[a-z]+:)?\/\//i.test(value) ||
+  /^(?:data|mailto|tel|javascript):/i.test(value) ||
+  value.startsWith("#");
+
+const cleanAssetReference = (value) => value.split("#")[0].split("?")[0];
+
+const assertLocalReferencesExist = async (file, html) => {
+  const references = new Set();
+  const patterns = [
+    /\b(?:src|href)=["']([^"']+)["']/g,
+    /url\(["']?([^"')]+)["']?\)/g
+  ];
+
+  for (const pattern of patterns) {
+    for (const match of html.matchAll(pattern)) {
+      const value = cleanAssetReference(match[1]);
+
+      if (!value || isExternalReference(value)) {
+        continue;
+      }
+
+      references.add(value);
+    }
+  }
+
+  for (const reference of references) {
+    const path = reference.startsWith("/")
+      ? join(publicRoot, reference.replace(/^\//, ""))
+      : join(dirname(file), reference);
+
+    await assertExists(path, `${file} local asset ${reference}`);
+  }
+};
+
 await assertExists(join(publicRoot, "_headers"), "Cloudflare Pages headers");
+
+const currentSiteRoot = join(designsRoot, "st-margaret-2026/current-site");
+const currentSitePages = [
+  "index.html",
+  "who-we-are/index.html",
+  "get-involved/index.html",
+  "news/index.html",
+  "faq/index.html"
+];
+
+for (const page of currentSitePages) {
+  await assertExists(join(currentSiteRoot, page), `current-site page ${page}`);
+}
+
+await assertExists(join(currentSiteRoot, "site.css"), "current-site shared stylesheet");
 
 const manifest = await readJson(manifestPath);
 
@@ -89,6 +142,16 @@ for (const template of manifest?.templates ?? []) {
 
 for (const file of await listHtmlFiles(designsRoot)) {
   const html = await readFile(file, "utf8");
+  const normalizedFile = file.replaceAll("\\", "/");
+  const isDirectionTemplate = /\/direction-[abc]\/index\.html$/.test(normalizedFile);
+  const isCurrentSitePage = /\/current-site\//.test(normalizedFile);
+  const isCurrentSiteHome = /\/current-site\/index\.html$/.test(normalizedFile);
+  const isCurrentSiteLocationPage = /\/current-site\/who-we-are\/index\.html$/.test(normalizedFile);
+  const isCurrentSiteGetInvolvedPage = /\/current-site\/get-involved\/index\.html$/.test(normalizedFile);
+  const isCurrentSiteNewsPage = /\/current-site\/news\/index\.html$/.test(normalizedFile);
+  const isCurrentSiteFaqPage = /\/current-site\/faq\/index\.html$/.test(normalizedFile);
+
+  await assertLocalReferencesExist(file, html);
 
   for (const pattern of ["support.js", "<x-dc", "design_doc_mode", "data-drags-parent", "data-screen-label"]) {
     if (html.includes(pattern)) {
@@ -122,22 +185,26 @@ for (const file of await listHtmlFiles(designsRoot)) {
     failures.push(`${file}: missing noindex robots meta tag.`);
   }
 
-  if (
-    !html.includes("demo-map-embed") ||
-    !html.includes("https://www.google.com/maps/embed") ||
-    !html.includes("St.%20Gabriel%20the%20Archangel%20Catholic%20Church") ||
-    !html.includes("0x80c8cf8dbd7bbb27%3A0x79aa173c20f43d86")
-  ) {
-    failures.push(`${file}: missing embedded Google map for St. Gabriel.`);
+  if (isDirectionTemplate || isCurrentSiteLocationPage) {
+    if (
+      !html.includes("demo-map-embed") ||
+      !html.includes("https://www.google.com/maps/embed") ||
+      !html.includes("St.%20Gabriel%20the%20Archangel%20Catholic%20Church") ||
+      !html.includes("0x80c8cf8dbd7bbb27%3A0x79aa173c20f43d86")
+    ) {
+      failures.push(`${file}: missing embedded Google map for St. Gabriel.`);
+    }
   }
 
-  if (!html.includes("data-mobile-cta")) {
+  if (isDirectionTemplate && !html.includes("data-mobile-cta")) {
     failures.push(`${file}: missing mobile sticky CTA.`);
   }
 
-  for (const text of sourceContractText) {
-    if (!html.includes(text)) {
-      failures.push(`${file}: missing FAQ source-contract text "${text}".`);
+  if (isDirectionTemplate) {
+    for (const text of sourceContractText) {
+      if (!html.includes(text)) {
+        failures.push(`${file}: missing FAQ source-contract text "${text}".`);
+      }
     }
   }
 
@@ -158,6 +225,88 @@ for (const file of await listHtmlFiles(designsRoot)) {
       failures.push(`${file}: Direction B is missing the newsletter cover image slot.`);
     }
   }
+
+  if (isCurrentSitePage) {
+    for (const text of [
+      "ST. MARGARET OF CORTONA FRATERNITY",
+      "St Margaret of Cortona Fraternity",
+      "Colleen Malloy, OFS",
+      "site.css"
+    ]) {
+      if (!html.includes(text)) {
+        failures.push(`${file}: missing current-site template contract text "${text}".`);
+      }
+    }
+  }
+
+  if (isCurrentSiteHome) {
+    for (const text of [
+      "WELCOME TO THE ST MARGARET OF CORTONA FRATERNITY",
+      "who-we-are/",
+      "get-involved/",
+      "news/",
+      "faq/",
+      "assets/images/st-margaret-of-cortona.jpg"
+    ]) {
+      if (!html.includes(text)) {
+        failures.push(`${file}: missing current-site home contract text "${text}".`);
+      }
+    }
+  }
+
+  if (isCurrentSiteLocationPage) {
+    for (const text of ["Who We Are", "Where We Meet", "Saint Gabriel the Archangel Church"]) {
+      if (!html.includes(text)) {
+        failures.push(`${file}: missing current-site location contract text "${text}".`);
+      }
+    }
+  }
+
+  if (isCurrentSiteGetInvolvedPage) {
+    for (const text of ["Is God Calling You to the Secular Franciscan Order?", "Contact"]) {
+      if (!html.includes(text)) {
+        failures.push(`${file}: missing current-site get-involved contract text "${text}".`);
+      }
+    }
+  }
+
+  if (isCurrentSiteNewsPage) {
+    for (const text of ["Regional Franciscan News", "Summer 2025", "Spring 2023 First Edition"]) {
+      if (!html.includes(text)) {
+        failures.push(`${file}: missing current-site news contract text "${text}".`);
+      }
+    }
+  }
+
+  if (isCurrentSiteFaqPage) {
+    for (const text of ["WHO ARE THE FRANCISCANS?", "WHAT IF I REALISE I&rsquo;M NOT CALLED"]) {
+      if (!html.includes(text)) {
+        failures.push(`${file}: missing current-site FAQ contract text "${text}".`);
+      }
+    }
+  }
+}
+
+for (const file of await listCssFiles(designsRoot)) {
+  const css = await readFile(file, "utf8");
+  await assertLocalReferencesExist(file, css);
+}
+
+try {
+  const currentSiteCss = await readFile(join(currentSiteRoot, "site.css"), "utf8");
+
+  for (const text of [
+    "assets/images/wix-page-background.jpg",
+    "assets/fonts/avenir-lt-w05_35-light.woff2",
+    "assets/fonts/avenir-lt-w01_35-light1475496.woff2",
+    "assets/fonts/questrial.woff2"
+  ]) {
+    if (!currentSiteCss.includes(text)) {
+      failures.push(`current-site shared stylesheet missing asset reference "${text}".`);
+    }
+  }
+} catch (error) {
+  failures.push(`current-site shared stylesheet could not be read: ${error.message}`);
 }
 
 if (failures.length > 0) {
