@@ -1,373 +1,280 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+import { resolve } from "node:path";
 
-const rawTemplates = ["direction-a", "direction-b", "direction-c"];
+const designs = [
+  { slug: "quiet-welcome", name: "Quiet Welcome", heading: "A quieter way to live the Gospel—together.", thumb: "quiet-welcome.jpg" },
+  { slug: "pilgrims-path", name: "Pilgrim’s Path", heading: "Peace begins close to home.", thumb: "pilgrims-path.jpg" },
+  { slug: "st-margaret-2026/direction-a", name: "Living Tradition", heading: "Is God calling you to the Secular Franciscan Order?", thumb: "st-margaret-2026/direction-a.jpg" },
+  { slug: "st-margaret-2026/direction-b", name: "Come and See", heading: "Is God calling you to the Secular Franciscan Order?", thumb: "st-margaret-2026/direction-b.jpg" },
+  { slug: "st-margaret-2026/direction-c", name: "Gospel to Life", heading: "From gospel to life, and life to gospel.", thumb: "st-margaret-2026/direction-c.jpg" }
+];
 
-test("gallery lists website templates without review batch metadata", async ({ page }) => {
-  const response = await page.goto("/");
-
-  expect(response?.status()).toBe(200);
+test("compact public gallery has five designs, sample disclosure, and contact fallback", async ({ page, request }) => {
+  await page.goto("/");
   await expect(page).toHaveTitle("Websites for Secular Franciscan Fraternities");
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
-    "content",
-    "index,follow"
-  );
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
-    "href",
-    "https://ofs-demos.endian.dev/"
-  );
-  await expect(
-    page.getByRole("heading", {
-      name: "Help people find your fraternity."
-    })
-  ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: "bill@endian.dev" })
-  ).toHaveAttribute(
-    "href",
-    "mailto:bill@endian.dev?subject=OFS%20Community%20Website%20Inquiry"
-  );
-  await expect(page.getByRole("link", { name: /The Pilgrim's Path/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Come and See/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Gospel to Life/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Current Site/ })).toBeVisible();
-  await expect(page.locator(".template-card")).toHaveCount(4);
-  await expect(page.getByText("Ready for review")).toHaveCount(0);
-  await expect(page.getByText("June 2026")).toHaveCount(0);
-  await expect(page.getByText("3 directions")).toHaveCount(0);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index,follow");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://ofs-demos.endian.dev/");
+  await expect(page.getByRole("heading", { name: "A welcoming website for your fraternity." })).toBeVisible();
+  await expect(page.locator(".design-card")).toHaveCount(5);
+  await expect(page.locator(".design-card h2")).toHaveText(designs.map((design) => design.name));
+  await expect(page.locator(".sample-note")).toContainText("fictional St. Clare Fraternity");
+  await expect(page.getByRole("link", { name: "bill@endian.dev" })).toHaveAttribute("href", /^mailto:bill@endian.dev/);
+  await expect(page.locator("body")).not.toContainText(/St\. Anthony|St\. Margaret|Current Site|Concept 0[12]/);
+  for (const design of designs) expect((await request.get(`/thumbs/${design.thumb}`)).ok()).toBe(true);
+  if (!await page.locator("#contact-form").getAttribute("data-turnstile-site-key")) {
+    await expect(page.getByRole("button", { name: "Send message" })).toBeDisabled();
+    await expect(page.locator("[data-form-status]")).toContainText("not available yet");
+  }
 });
 
-test("preview validates query params and swaps templates/devices", async ({ page }) => {
-  await page.goto("/preview?d=unknown&device=sideways");
+for (const design of designs) {
+  test(`full demo ${design.name} preserves real content and sample identity`, async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const response = await page.goto(`/designs/${design.slug}/index.html`);
+    expect(response?.status()).toBe(200);
+    await expect(page.getByRole("heading", { level: 1, name: design.heading })).toBeVisible();
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex,nofollow");
+    await expect(page.locator("body")).toContainText("St. Clare Fraternity");
+    await expect(page.locator("body")).toContainText("Cedar Grove");
+    await expect(page.locator("body")).toContainText("2–4 pm");
+    await expect(page.locator("body")).toContainText("St. Mary Parish Hall");
+    await expect(page.locator("body")).not.toContainText(/Margaret|Cortona|Anthony|Tucson|Benjamin|Las Vegas|St\. Gabriel/);
+    expect(await page.locator("body").evaluate((body) => body.scrollHeight)).toBeGreaterThan(1400);
+    if (design.slug === "quiet-welcome") await expect(page.getByRole("navigation").getByRole("link")).toHaveCount(5);
+    else await expect(page.locator("details")).toHaveCount(design.slug === "pilgrims-path" ? 5 : design.slug.endsWith("direction-b") ? 8 : 9);
+    // This explicit opt-in is the sole thumbnail capture path; normal smoke tests never modify assets.
+    if (process.env.UPDATE_THUMBNAILS === "1") {
+      await page.evaluate(() => document.fonts.ready);
+      await expect.poll(() => page.locator('img:not([loading="lazy"])').evaluateAll((images) => images.every((image) => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
+      await page.screenshot({ path: resolve("public/thumbs", design.thumb), type: "jpeg", quality: 78, animations: "disabled" });
+    }
+  });
+}
 
+test("preview offers finite previous/next, canonical URLs, history, and persistent return", async ({ page }) => {
+  await page.goto("/preview?d=unknown&device=mobile");
   const frame = page.locator("[data-preview-frame]");
-
-  await expect(page.locator("[data-template-title]")).toContainText(
-    "Template A · The Pilgrim's Path"
-  );
-  await expect(page.getByText("Preview menu")).toBeVisible();
-  await expect(frame).toHaveAttribute(
-    "sandbox",
-    "allow-scripts allow-popups allow-popups-to-escape-sandbox"
-  );
-  await expect(frame).not.toHaveAttribute("sandbox", /allow-same-origin/);
-  await expect(frame).toHaveAttribute("src", /direction-a\/index\.html$/);
-
-  await page.getByRole("button", { name: "Template B - Come and See" }).click();
-  expect(new URL(page.url()).searchParams.get("d")).toBe(
-    "st-margaret-2026/direction-b"
-  );
-  await expect(frame).toHaveAttribute("src", /direction-b\/index\.html$/);
-
-  await page.getByRole("button", { name: "Template D - Current Site" }).click();
-  expect(new URL(page.url()).searchParams.get("d")).toBe(
-    "st-margaret-2026/current-site"
-  );
-  await expect(frame).toHaveAttribute("src", /current-site\/index\.html$/);
-
-  await page.getByRole("button", { name: "Mobile" }).click();
-  expect(new URL(page.url()).searchParams.get("device")).toBe("mobile");
-  await expect(frame).toHaveAttribute("src", /current-site\/index\.html$/);
-  await expect(page.locator("[data-frame-shell]")).toHaveAttribute(
-    "data-device",
-    "mobile"
-  );
-  await expect(page.locator('button[data-device="mobile"]')).toHaveAttribute(
-    "aria-pressed",
-    "true"
-  );
+  const previous = page.getByRole("button", { name: "← Previous" });
+  const next = page.getByRole("button", { name: "Next →" });
+  await expect(page.locator("[data-template-title]")).toHaveText("Quiet Welcome");
+  await expect(page.locator("[data-design-number]")).toHaveText("Design 1 of 5");
+  await expect(previous).toBeDisabled();
+  await expect(frame).toHaveAttribute("sandbox", "allow-scripts allow-popups allow-popups-to-escape-sandbox");
+  await expect(page.locator(".preview-toolbar button")).toHaveCount(2);
+  expect(new URL(page.url()).searchParams.has("device")).toBe(false);
+  for (let index = 1; index < designs.length; index++) {
+    await next.click();
+    await expect(page.locator("[data-template-title]")).toHaveText(designs[index].name);
+    await expect(page.locator("[data-design-number]")).toHaveText(`Design ${index + 1} of 5`);
+    await expect(frame).toHaveAttribute("src", `/designs/${designs[index].slug}/index.html`);
+    expect(new URL(page.url()).searchParams.get("d")).toBe(designs[index].slug);
+    await expect(page.locator("[data-template-title]")).toBeFocused();
+  }
+  await expect(next).toBeDisabled();
+  await page.goBack();
+  await expect(page.locator("[data-template-title]")).toHaveText("Come and See");
+  await page.goForward();
+  await expect(page.locator("[data-template-title]")).toHaveText("Gospel to Life");
+  await previous.click();
+  await expect(page.locator("[data-template-title]")).toHaveText("Come and See");
+  await expect(page.getByRole("link", { name: "← Back to designs" })).toBeVisible();
 });
 
-test("preview toolbar collapses to free up preview space and remembers it", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 780 });
-  await page.goto("/preview?d=st-margaret-2026/direction-a&device=mobile");
-
-  const toolbar = page.locator("[data-preview-toolbar]");
-  const controls = page.locator("#toolbar-controls");
-  const frame = page.locator("[data-preview-frame]");
-
-  await expect(controls).toBeVisible();
-  const expandedHeight = (await frame.boundingBox())?.height ?? 0;
-  expect(expandedHeight).toBeGreaterThan(0);
-
-  await page.getByRole("button", { name: "Hide menu" }).click();
-  await expect(toolbar).toHaveAttribute("data-collapsed", "true");
-  await expect(controls).toBeHidden();
-  await expect(page.getByRole("button", { name: "Show menu" })).toHaveAttribute(
-    "aria-expanded",
-    "false"
-  );
-  await expect
-    .poll(async () => (await frame.boundingBox())?.height ?? 0)
-    .toBeGreaterThan(expandedHeight);
-
-  // Preference survives a reload via localStorage and stays out of the URL.
-  await page.reload();
-  await expect(toolbar).toHaveAttribute("data-collapsed", "true");
-  await expect(controls).toBeHidden();
-  expect(new URL(page.url()).searchParams.has("collapsed")).toBe(false);
-
-  await page.getByRole("button", { name: "Show menu" }).click();
-  await expect(toolbar).toHaveAttribute("data-collapsed", "false");
-  await expect(controls).toBeVisible();
+test("return restores the originating gallery card after browsing other designs", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Preview Living Tradition" }).click();
+  await page.getByRole("button", { name: "Next →" }).click();
+  await page.getByRole("link", { name: "← Back to designs" }).click();
+  await expect(page.getByRole("link", { name: "Preview Living Tradition" })).toBeFocused();
 });
 
-test("phone-width preview hides the device toggle and renders full-bleed", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 780 });
-  // A stored ?device=mobile preference must not cap + gutter the iframe here.
-  await page.goto("/preview?d=st-margaret-2026/direction-a&device=mobile");
-
-  await expect(page.locator(".device-switch")).toBeHidden();
-
-  const shell = page.locator("[data-frame-shell]");
-  const frame = page.locator("[data-preview-frame]");
-  await expect(shell).toHaveAttribute("data-device", "desktop");
-
-  await expect
-    .poll(async () => {
-      const shellBox = await shell.boundingBox();
-      const frameBox = await frame.boundingBox();
-      return Math.abs((frameBox?.width ?? 0) - (shellBox?.width ?? 0));
-    })
-    .toBeLessThanOrEqual(2);
+test("Quiet Welcome keeps every full page, native navigation, FAQs, and inert demo form", async ({ page }) => {
+  await page.goto("/preview?d=quiet-welcome");
+  const demo = page.frameLocator("[data-preview-frame]");
+  const tau = demo.locator(".qs-tau");
+  await expect.poll(async () => (await tau.boundingBox())?.width ?? 1000).toBeLessThan(100);
+  const paths = [
+    ["Who we are", "A fraternity in the middle of ordinary life."],
+    ["Franciscan life", "From Gospel to life. From life to Gospel."],
+    ["Questions", "Curiosity belongs here."]
+  ];
+  for (const [label] of paths) {
+    await demo.getByRole("navigation").getByRole("link", { name: label, exact: true }).click();
+    await expect(demo.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(demo.getByRole("navigation").getByRole("link")).toHaveCount(5);
+  }
+  await demo.locator("summary").filter({ hasText: "Is visiting a commitment?" }).click();
+  await expect(demo.getByText(/Not at all\. A first visit is simply/)).toBeVisible();
+  await demo.getByRole("navigation").getByRole("link", { name: "Come & see", exact: true }).click();
+  await expect(demo.getByRole("heading", { name: "There is room for your questions." })).toBeVisible();
+  await expect(demo.locator("body")).toContainText("St. Mary Parish Hall");
+  await demo.getByLabel("Name", { exact: true }).fill("Sample visitor");
+  await demo.getByLabel("Email", { exact: true }).fill("visitor@example.org");
+  await demo.getByLabel("What would you like to know?").fill("I am exploring the sample form.");
+  await demo.getByRole("button", { name: "Try the demo form" }).click();
+  await expect(demo.getByText("✓ Thanks! This is a demo site — nothing was actually sent.")).toBeVisible();
+  await demo.getByLabel("Name", { exact: true }).fill("Keyboard visitor");
+  await demo.getByLabel("Email", { exact: true }).fill("keyboard@example.org");
+  await demo.getByLabel("What would you like to know?").fill("A keyboard-only sample.");
+  await demo.getByLabel("Email", { exact: true }).press("Enter");
+  await expect(demo.getByLabel("Name", { exact: true })).toHaveValue("");
+  await expect(page.locator("[data-template-title]")).toHaveText("Quiet Welcome");
+  await demo.getByRole("navigation").getByRole("link", { name: "Home", exact: true }).click();
+  await expect(demo.getByRole("heading", { level: 1 })).toHaveText(designs[0].heading);
 });
 
-test("tablet-width preview keeps the device toggle", async ({ page }) => {
-  await page.setViewportSize({ width: 768, height: 1024 });
-  await page.goto("/preview?d=st-margaret-2026/direction-a&device=desktop");
-
-  await expect(page.locator(".device-switch")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Mobile" })).toBeVisible();
+test("Pilgrim’s Path keeps full section navigation and FAQ behavior in the sandbox", async ({ page }) => {
+  await page.goto("/preview?d=pilgrims-path");
+  const demo = page.frameLocator("[data-preview-frame]");
+  await demo.getByRole("navigation", { name: "Page guide" }).getByRole("link", { name: /A path of discernment/ }).click();
+  await expect(demo.locator("#formation")).toBeInViewport();
+  await expect(demo.locator("#formation")).toContainText("Generally 18 months–3 years");
+  await demo.getByRole("navigation", { name: "Pilgrim's Path navigation" }).getByRole("link", { name: "Questions" }).click();
+  await demo.locator("summary").filter({ hasText: "Is visiting a commitment?" }).click();
+  await expect(demo.getByText(/Not at all\. A first visit is simply/)).toBeVisible();
 });
 
-test("wide desktop preview iframe fills the shell", async ({ page }) => {
-  await page.setViewportSize({ width: 1600, height: 900 });
-  await page.goto("/preview?d=st-margaret-2026/direction-a&device=desktop");
+for (const width of [320, 390, 768, 1280]) {
+  test(`gallery and preview remain readable at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 850 });
+    await page.goto("/");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    const columns = await page.locator(".design-grid").evaluate((grid) => getComputedStyle(grid).gridTemplateColumns.split(" ").length);
+    expect(columns).toBe(width <= 560 ? 1 : width <= 850 ? 2 : 3);
+    for (const design of designs) {
+      await page.goto(`/preview?d=${design.slug}`);
+      await expect(page.getByRole("link", { name: "← Back to designs" })).toBeVisible();
+      await expect(page.locator("[data-template-title]")).toHaveText(design.name);
+      await expect(page.locator("[data-design-number]")).toBeVisible();
+      const frame = page.locator("[data-preview-frame]");
+      const box = await frame.boundingBox();
+      expect(Math.abs((box?.width ?? 0) - width)).toBeLessThanOrEqual(1);
+      expect(box?.height).toBeGreaterThan(600);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+      await expect.poll(() => page.frameLocator("[data-preview-frame]").locator("body").evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    }
+  });
+}
 
-  const shellBox = await page.locator("[data-frame-shell]").boundingBox();
-  const frameBox = await page.locator("[data-preview-frame]").boundingBox();
-
-  expect(shellBox).not.toBeNull();
-  expect(frameBox).not.toBeNull();
-  expect(Math.abs((frameBox?.width ?? 0) - (shellBox?.width ?? 0))).toBeLessThanOrEqual(2);
-});
-
-test("responsive desktop iframe keeps template links clickable", async ({ page }) => {
-  await page.setViewportSize({ width: 1024, height: 720 });
-  await page.goto("/preview?d=st-margaret-2026/direction-a&device=desktop");
-
-  const template = page.frameLocator("[data-preview-frame]");
-
-  await template.getByRole("link", { name: "Where We Meet" }).first().click();
-  await expect(template.locator("#where-we-meet")).toBeInViewport();
-});
-
-test("raw responsive template has menu and demo form behavior", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 780 });
+test("existing modern design mobile menu follows its own navigation and demo form never sends", async ({ page }) => {
+  let posts = 0;
+  page.on("request", (request) => { if (request.method() === "POST") posts++; });
+  await page.setViewportSize({ width: 390, height: 850 });
   await page.goto("/designs/st-margaret-2026/direction-b/index.html");
-
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
-    "content",
-    "noindex,nofollow"
-  );
-
   await page.getByRole("button", { name: "Open menu" }).click();
   await expect(page.getByRole("navigation", { name: "Mobile menu" })).toBeVisible();
-  await page.getByRole("link", { name: "Contact" }).click();
+  await page.getByRole("navigation", { name: "Mobile menu" }).getByRole("link", { name: "Contact", exact: true }).click();
   await expect(page.locator("#contact")).toBeInViewport();
-
-  await page.getByPlaceholder("Your name").fill("Maria");
-  await page.getByPlaceholder("Email address").fill("maria@example.com");
-  await page
-    .getByPlaceholder("Tell us a little about yourself...")
-    .fill("I would like to learn more.");
-  await page.getByRole("button", { name: /Send/ }).click();
-
-  await expect(
-    page.getByText("✓ Thanks! This is a demo site — nothing was actually sent.")
-  ).toBeVisible();
+  await page.getByLabel("Your name", { exact: true }).fill("Sample visitor");
+  await page.getByLabel("Email", { exact: true }).fill("visitor@example.org");
+  await page.getByLabel("Message", { exact: true }).fill("A sample message.");
+  await page.getByRole("button", { name: "Send message" }).click();
+  await expect(page.getByText("✓ Thanks! This is a demo site — nothing was actually sent.")).toBeVisible();
+  expect(posts).toBe(0);
+  await expect(page.locator("[data-mobile-cta]")).toBeVisible();
 });
 
-test("raw templates include embedded Google maps centered on St. Gabriel", async ({ page }) => {
-  for (const direction of rawTemplates) {
-    await page.goto(`/designs/st-margaret-2026/${direction}/index.html`);
-
-    const map = page.locator(".demo-map-embed");
-
-    await expect(map).toHaveAttribute("src", /google\.com\/maps\/embed/);
-    await expect(map).toHaveAttribute(
-      "src",
-      /St\.%20Gabriel%20the%20Archangel%20Catholic%20Church/
-    );
-    await expect(map).toHaveAttribute(
-      "src",
-      /0x80c8cf8dbd7bbb27%3A0x79aa173c20f43d86/
-    );
+test("demo forms remain disabled when JavaScript is unavailable", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  for (const route of ["quiet-welcome/come-and-see", "pilgrims-path", "st-margaret-2026/direction-a", "st-margaret-2026/direction-b", "st-margaret-2026/direction-c"]) {
+    await page.goto(`http://127.0.0.1:4321/designs/${route}/index.html`);
+    await expect(page.locator('form button[type="submit"]')).toBeDisabled();
+    await expect(page.locator("form input").first()).toBeDisabled();
   }
-
-  await page.goto("/designs/st-margaret-2026/current-site/who-we-are/index.html");
-
-  const currentSiteMap = page.locator(".demo-map-embed");
-
-  await expect(currentSiteMap).toHaveAttribute("src", /google\.com\/maps\/embed/);
-  await expect(currentSiteMap).toHaveAttribute(
-    "src",
-    /St\.%20Gabriel%20the%20Archangel%20Catholic%20Church/
-  );
-  await expect(currentSiteMap).toHaveAttribute(
-    "src",
-    /0x80c8cf8dbd7bbb27%3A0x79aa173c20f43d86/
-  );
+  await context.close();
 });
 
-test("current site template loads through desktop and mobile preview states", async ({ page }) => {
-  await page.goto("/preview?d=st-margaret-2026/current-site&device=desktop");
-
-  const frame = page.locator("[data-preview-frame]");
-  const template = page.frameLocator("[data-preview-frame]");
-
-  await expect(page.locator("[data-template-title]")).toContainText(
-    "Template D · Current Site"
-  );
-  await expect(frame).toHaveAttribute("src", /current-site\/index\.html$/);
-  await expect(
-    template.getByRole("heading", {
-      name: "WELCOME TO THE ST MARGARET OF CORTONA FRATERNITY"
-    })
-  ).toBeVisible();
-
-  await template.getByRole("link", { name: "Who We Are" }).click();
-  await expect(template.getByRole("heading", { name: "Who We Are" })).toBeVisible();
-  await expect(template.locator(".demo-map-embed")).toHaveAttribute(
-    "src",
-    /google\.com\/maps\/embed/
-  );
-
-  await page.getByRole("button", { name: "Mobile" }).click();
-  expect(new URL(page.url()).searchParams.get("device")).toBe("mobile");
-  await expect(page.locator("[data-frame-shell]")).toHaveAttribute(
-    "data-device",
-    "mobile"
-  );
-  await expect(frame).toHaveAttribute("src", /current-site\/index\.html$/);
-  await template.getByRole("link", { name: "Get Involved" }).click();
-  await expect(
-    template.getByRole("heading", {
-      name: "Is God Calling You to the Secular Franciscan Order?"
-    })
-  ).toBeVisible();
-  await expect(template.getByRole("heading", { name: "Contact" })).toBeVisible();
+test("fictional visit and news links work without real venue or newsletter claims", async ({ page }) => {
+  await page.goto("/designs/st-margaret-2026/direction-a/index.html");
+  await expect(page.locator(".sample-location-panel")).toContainText("Fictional sample venue");
+  await page.getByRole("link", { name: "Get directions", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "St. Mary Parish Hall" })).toBeVisible();
+  await expect(page.locator("body")).toContainText("not a real destination");
+  await page.goto("/designs/st-margaret-2026/direction-c/index.html");
+  await page.locator(".issue.feature").click();
+  await expect(page.getByRole("heading", { name: "Summer: room at the table" })).toBeVisible();
+  await expect(page.locator("body")).toContainText("not reports of real events");
 });
 
-test("preview shell permits embedded Google map frames", async ({ page }) => {
-  await page.goto("/preview?d=st-margaret-2026/direction-c&device=desktop");
-
-  const template = page.frameLocator("[data-preview-frame]");
-
-  await template.locator("#where-we-meet").scrollIntoViewIfNeeded();
-  await expect(template.locator(".demo-map-embed")).toHaveAttribute(
-    "src",
-    /google\.com\/maps\/embed/
-  );
-  await expect
-    .poll(
-      () => page.frames().some((frame) => frame.url().includes("google.com/maps/embed")),
-      { timeout: 10000 }
-    )
-    .toBe(true);
-});
-
-test("direction b uses real photo-led imagery", async ({ page }) => {
-  await page.goto("/designs/st-margaret-2026/direction-b/index.html");
-
-  const heroBackground = await page
-    .locator(".hero")
-    .evaluate((element) => getComputedStyle(element, "::before").backgroundImage);
-
-  expect(heroBackground).toContain("images.unsplash.com");
-  await expect(page.locator(".photo-card img")).toHaveAttribute(
-    "src",
-    /images\.unsplash\.com/
-  );
-  await expect(page.locator(".cover img")).toHaveAttribute(
-    "src",
-    /images\.unsplash\.com/
-  );
-  await expect(page.getByText("shared table / open hands")).toHaveCount(0);
-  await expect(page.getByText("shared table / open hands visual")).toHaveCount(0);
-  await expect(page.getByText("Summer 2025 cover")).toHaveCount(0);
-});
-
-test("current site template uses local assets and thumbnail", async ({ page, request }) => {
-  const assets = [
-    "/thumbs/st-margaret-2026/current-site.jpg",
-    "/designs/st-margaret-2026/current-site/site.css",
-    "/designs/st-margaret-2026/current-site/assets/images/st-margaret-of-cortona.jpg",
-    "/designs/st-margaret-2026/current-site/assets/images/wix-page-background.jpg",
-    "/designs/st-margaret-2026/current-site/assets/fonts/avenir-lt-w05_35-light.woff2",
-    "/designs/st-margaret-2026/current-site/assets/fonts/avenir-lt-w01_35-light1475496.woff2",
-    "/designs/st-margaret-2026/current-site/assets/fonts/questrial.woff2"
-  ];
-
-  for (const asset of assets) {
-    const response = await request.get(asset);
-    expect(response.ok(), asset).toBe(true);
+test("legacy Current Site remains reachable outside the public sequence", async ({ page, request }) => {
+  for (const route of ["", "who-we-are/", "get-involved/", "news/", "faq/"]) {
+    expect((await request.get(`/designs/st-margaret-2026/current-site/${route}index.html`)).ok()).toBe(true);
   }
-
-  for (const currentSitePage of [
-    "index.html",
-    "who-we-are/index.html",
-    "get-involved/index.html",
-    "news/index.html",
-    "faq/index.html"
-  ]) {
-    const response = await request.get(
-      `/designs/st-margaret-2026/current-site/${currentSitePage}`
-    );
-    expect(response.ok(), currentSitePage).toBe(true);
-  }
-
-  await page.goto("/designs/st-margaret-2026/current-site/index.html");
-
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
-    "content",
-    "noindex,nofollow"
-  );
-  await expect(page.locator(".home-portrait")).toBeVisible();
-  await expect(page.locator(".home-portrait")).toHaveAttribute(
-    "src",
-    /assets\/images\/st-margaret-of-cortona\.jpg/
-  );
-  await expect(page.getByRole("link", { name: "Who We Are" })).toHaveAttribute(
-    "href",
-    /who-we-are\/$/
-  );
-
-  const backgroundImage = await page.evaluate(
-    () => getComputedStyle(document.body).backgroundImage
-  );
-
-  expect(backgroundImage).toContain("wix-page-background.jpg");
+  await page.goto("/preview?d=st-margaret-2026/current-site&device=mobile");
+  await expect(page.locator("[data-template-title]")).toHaveText("Current Site");
+  await expect(page.locator("[data-design-number]")).toHaveText("Archived design · outside this collection");
+  await expect(page.getByRole("button", { name: "← Previous" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Next →" })).toBeDisabled();
+  const demo = page.frameLocator("[data-preview-frame]");
+  await expect(demo.getByRole("heading", { name: "WELCOME TO THE ST MARGARET OF CORTONA FRATERNITY" })).toBeVisible();
+  await demo.getByRole("link", { name: "Who We Are", exact: true }).click();
+  await expect(demo.getByRole("heading", { name: "Who We Are", exact: true })).toBeVisible();
 });
 
-test("raw mobile templates keep sticky CTA bars", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 780 });
+async function configuredForm(page: Page) {
+  await page.route("http://127.0.0.1:4321/", async (route) => {
+    const response = await route.fetch();
+    const html = (await response.text()).replace(/data-turnstile-site-key(?:="[^"]*")?/, 'data-turnstile-site-key="test-site-key"');
+    await route.fulfill({ response, body: html });
+  });
+  await page.route("https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit", (route) => route.fulfill({ contentType: "application/javascript", body: `
+    window.turnstile={ render(element, options) {
+      const field=document.createElement('input'); field.type='hidden'; field.name='cf-turnstile-response'; field.value='widget-token'; element.append(field);
+      this.options=options; options.callback('widget-token'); return 'widget';
+    }, reset(){queueMicrotask(()=>this.options.callback('fresh-widget-token'));} };
+  ` }));
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Send message" })).toBeEnabled();
+}
+async function fillContact(page: Page) {
+  await page.getByLabel("Your name", { exact: true }).fill("Sample visitor");
+  await page.getByLabel("Email address", { exact: true }).fill("visitor@example.org");
+  await page.getByLabel("Your message", { exact: true }).fill("I would like a website for our fraternity.");
+}
 
-  for (const direction of rawTemplates) {
-    await page.goto(`/designs/st-margaret-2026/${direction}/index.html`);
-
-    await expect(page.locator("[data-mobile-cta]")).toBeVisible();
-    await expect(page.locator("[data-mobile-cta] a")).toBeVisible();
-  }
+test("contact validates required fields, sends only approved fields, and prevents duplicate pending requests", async ({ page }) => {
+  let posts = 0;
+  let release: () => void = () => {};
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  await page.route("**/api/contact", async (route) => {
+    posts++;
+    const body = route.request().postDataJSON();
+    expect(Object.keys(body).sort()).toEqual(["design", "email", "fraternity", "message", "name", "turnstileToken", "website"]);
+    expect(body.turnstileToken).toBe("widget-token");
+    await gate;
+    await route.fulfill({ json: { ok: true, message: "Your message has been accepted for delivery. Thank you for getting in touch." } });
+  });
+  await configuredForm(page);
+  await page.getByRole("button", { name: "Send message" }).click();
+  expect(posts).toBe(0);
+  await fillContact(page);
+  await page.getByRole("button", { name: "Send message" }).click();
+  await expect(page.getByRole("button", { name: "Sending…" })).toBeDisabled();
+  await page.locator("#contact-form").dispatchEvent("submit");
+  await expect.poll(() => posts).toBe(1);
+  release();
+  await expect(page.locator("[data-form-status]")).toContainText("accepted for delivery");
+  await expect(page.getByLabel("Your name", { exact: true })).toHaveValue("");
+  expect(posts).toBe(1);
 });
 
-test("raw templates keep grouped FAQ reassurance copy", async ({ page }) => {
-  for (const direction of rawTemplates) {
-    await page.goto(`/designs/st-margaret-2026/${direction}/index.html`);
+test("contact preserves input and useful error after Turnstile renewal", async ({ page }) => {
+  await page.route("**/api/contact", (route) => route.fulfill({ status: 503, json: { ok: false, message: "The contact form is not available yet. Please email bill@endian.dev." } }));
+  await configuredForm(page);
+  await fillContact(page);
+  await page.getByRole("button", { name: "Send message" }).click();
+  await expect(page.getByRole("alert")).toContainText("Please email bill@endian.dev.");
+  await expect(page.getByRole("button", { name: "Send message" })).toBeEnabled();
+  await expect(page.getByLabel("Your message", { exact: true })).toHaveValue("I would like a website for our fraternity.");
+  await expect(page.getByRole("alert")).toContainText("not available yet");
+});
 
-    await expect(page.getByText("About the Franciscans")).toBeVisible();
-    await expect(page.getByText("About joining")).toBeVisible();
-    await expect(page.getByText("What's expected of me")).toBeVisible();
-    await expect(page.getByText("What if I'm just curious")).toBeVisible();
-    await expect(page.getByText("Do I have to wear a habit?")).toBeVisible();
-  }
+test("contact never claims success for a network failure", async ({ page }) => {
+  await page.route("**/api/contact", (route) => route.abort());
+  await configuredForm(page);
+  await fillContact(page);
+  await page.getByRole("button", { name: "Send message" }).click();
+  await expect(page.getByRole("alert")).toContainText("couldn’t confirm");
+  await expect(page.getByLabel("Your name", { exact: true })).toHaveValue("Sample visitor");
 });

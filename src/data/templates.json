@@ -1,36 +1,52 @@
 {
   "templates": [
     {
+      "slug": "quiet-welcome",
+      "title": "Quiet Welcome",
+      "blurb": "Calm, spacious, and easy to explore.",
+      "thumb": "quiet-welcome.jpg",
+      "src": "/designs/quiet-welcome/index.html",
+      "listed": true
+    },
+    {
+      "slug": "pilgrims-path",
+      "title": "Pilgrim’s Path",
+      "blurb": "A warm invitation, one step at a time.",
+      "thumb": "pilgrims-path.jpg",
+      "src": "/designs/pilgrims-path/index.html",
+      "listed": true
+    },
+    {
       "slug": "st-margaret-2026/direction-a",
-      "label": "A",
-      "title": "The Pilgrim's Path",
-      "blurb": "Traditional, sacred, and illustration-led with parchment, espresso, terracotta, and Franciscan ornament.",
+      "title": "Living Tradition",
+      "blurb": "Timeless type and a sense of belonging.",
       "thumb": "st-margaret-2026/direction-a.jpg",
-      "src": "/designs/st-margaret-2026/direction-a/index.html"
+      "src": "/designs/st-margaret-2026/direction-a/index.html",
+      "listed": true
     },
     {
       "slug": "st-margaret-2026/direction-b",
-      "label": "B",
       "title": "Come and See",
-      "blurb": "Warm, modern, and welcoming with sky blue, soft green, rounded cards, and human-friendly pacing.",
+      "blurb": "Bright, friendly, and open to everyone.",
       "thumb": "st-margaret-2026/direction-b.jpg",
-      "src": "/designs/st-margaret-2026/direction-b/index.html"
+      "src": "/designs/st-margaret-2026/direction-b/index.html",
+      "listed": true
     },
     {
       "slug": "st-margaret-2026/direction-c",
-      "label": "C",
       "title": "Gospel to Life",
-      "blurb": "Minimal, editorial, and typography-led with ivory paper, ink, oxblood, and quiet rules.",
+      "blurb": "Simple, expressive, and grounded in faith.",
       "thumb": "st-margaret-2026/direction-c.jpg",
-      "src": "/designs/st-margaret-2026/direction-c/index.html"
+      "src": "/designs/st-margaret-2026/direction-c/index.html",
+      "listed": true
     },
     {
       "slug": "st-margaret-2026/current-site",
-      "label": "D",
       "title": "Current Site",
       "blurb": "Simple, content-first, traditional site layout based on the current fraternity website.",
       "thumb": "st-margaret-2026/current-site.jpg",
-      "src": "/designs/st-margaret-2026/current-site/index.html"
+      "src": "/designs/st-margaret-2026/current-site/index.html",
+      "listed": false
     }
   ]
 }

@@ -1,0 +1,15 @@
+{
+  "name": "St. Clare Fraternity",
+  "location": "Cedar Grove",
+  "frequency": "Second Sunday of each month",
+  "time": "2–4 pm",
+  "venue": "St. Mary Parish Hall",
+  "email": "hello@stclare.example.org",
+  "phone": "(202) 555-0147",
+  "formation": [
+    "About 3–6 months",
+    "About 6 months",
+    "Generally 18 months–3 years"
+  ],
+  "formationNote": "Formation unfolds gradually. These timeframes are approximate; the local formation team will confirm the process with each person."
+}

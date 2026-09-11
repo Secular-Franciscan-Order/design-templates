@@ -120,9 +120,38 @@ for (const page of currentSitePages) {
 await assertExists(join(currentSiteRoot, "site.css"), "current-site shared stylesheet");
 
 const manifest = await readJson(manifestPath);
+const sample = await readJson(join(root, "src/data/sample-fraternity.json"));
 
 if (manifest && !Array.isArray(manifest.templates)) {
   failures.push(`${manifestPath}: expected a top-level templates array.`);
+}
+const listed = manifest?.templates?.filter((design) => design.listed) ?? [];
+if (listed.length !== 5 || listed.map((design) => design.title).join("|") !== "Quiet Welcome|Pilgrim’s Path|Living Tradition|Come and See|Gospel to Life") {
+  failures.push("The public catalog must contain the five approved designs in order.");
+}
+if (manifest?.templates?.find((design) => design.slug.endsWith("current-site"))?.listed !== false) failures.push("Current Site must remain available but unlisted.");
+for (const page of ["index.html", "who-we-are/index.html", "franciscan-life/index.html", "come-and-see/index.html", "questions/index.html"]) {
+  await assertExists(join(designsRoot, "quiet-welcome", page), `Quiet Welcome page ${page}`);
+}
+for (const design of listed) {
+  const directory = dirname(join(publicRoot, design.src.replace(/^\//, "")));
+  const pages = await listHtmlFiles(directory);
+  const allContent = (await Promise.all(pages.map((file) => readFile(file, "utf8")))).join("\n");
+  for (const value of [sample?.name, sample?.location, sample?.time, sample?.venue, ...sample?.formation ?? [], sample?.formationNote]) {
+    if (value && !allContent.includes(value)) failures.push(`${design.title}: missing canonical sample content ${value}`);
+  }
+  for (const pattern of [/St\.? Margaret/i, /Cortona/i, /Saint Anthony/i, /Tucson/i, /Benjamin/i, /Gabriel/i, /Las Vegas/i, /Maule/i, /stmregionofs\.com/i, /Thomas More Region/i, /Brother Daniel/i, /google\.com\/maps/i, /_next\//, /ConceptPreviewBar/]) {
+    if (pattern.test(allContent)) failures.push(`${design.title}: leftover source data/runtime ${pattern}`);
+  }
+  for (const match of allContent.matchAll(/(?:mailto:)([^"\s<]+)/g)) {
+    if (match[1] !== sample.email) failures.push(`${design.title}: contact email must use reserved sample address.`);
+  }
+  for (const match of allContent.matchAll(/(?:tel:)([^"\s<]+)/g)) {
+    if (match[1] !== "+12025550147") failures.push(`${design.title}: phone must use reserved fictional number.`);
+  }
+  for (const match of allContent.matchAll(/<form\b[^>]*>/g)) {
+    if (/\baction=/.test(match[0])) failures.push(`${design.title}: demo forms must not have an endpoint.`);
+  }
 }
 
 for (const template of manifest?.templates ?? []) {
@@ -185,7 +214,7 @@ for (const file of await listHtmlFiles(designsRoot)) {
     failures.push(`${file}: missing noindex robots meta tag.`);
   }
 
-  if (isDirectionTemplate || isCurrentSiteLocationPage) {
+  if (isCurrentSiteLocationPage) {
     if (
       !html.includes("demo-map-embed") ||
       !html.includes("https://www.google.com/maps/embed") ||
@@ -194,6 +223,10 @@ for (const file of await listHtmlFiles(designsRoot)) {
     ) {
       failures.push(`${file}: missing embedded Google map for St. Gabriel.`);
     }
+  }
+
+  if (isDirectionTemplate && (!html.includes('class="sample-location-panel"') || !html.includes('href="/designs/sample-visit.html"') || !html.includes("Fictional sample venue"))) {
+    failures.push(`${file}: sample venue must use fictional visit information, not a real map.`);
   }
 
   if (isDirectionTemplate && !html.includes("data-mobile-cta")) {

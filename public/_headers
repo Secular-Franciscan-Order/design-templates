@@ -6,3 +6,9 @@
 /designs/*
   Content-Security-Policy: frame-ancestors 'self'
   X-Robots-Tag: noindex, nofollow
+
+/preview
+  X-Robots-Tag: noindex, nofollow
+
+/preview/
+  X-Robots-Tag: noindex, nofollow
