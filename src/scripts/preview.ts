@@ -1,7 +1,7 @@
 type Design = { slug: string; title: string; src: string; listed: boolean };
 const data = JSON.parse(document.getElementById("template-data")!.textContent!) as { templates: Design[] };
 const listed = data.templates.filter((design) => design.listed);
-const frame = document.querySelector<HTMLIFrameElement>("[data-preview-frame]")!;
+let frame = document.querySelector<HTMLIFrameElement>("[data-preview-frame]")!;
 const title = document.querySelector<HTMLHeadingElement>("[data-template-title]")!;
 const number = document.querySelector<HTMLElement>("[data-design-number]")!;
 const previous = document.querySelector<HTMLButtonElement>("[data-previous]")!;
@@ -20,7 +20,14 @@ function render(design: Design, mode: "push" | "replace" | "pop" = "push", focus
   number.textContent = index < 0 ? "Archived design · outside this collection" : `Design ${index + 1} of ${listed.length}`;
   previous.disabled = index <= 0;
   next.disabled = index < 0 || index === listed.length - 1;
-  if (frame.getAttribute("src") !== current.src) frame.src = current.src;
+  if (frame.getAttribute("src") !== current.src) {
+    // A fresh child context avoids adding iframe navigations to the viewer's history.
+    const replacement = frame.cloneNode(false) as HTMLIFrameElement;
+    replacement.src = current.src;
+    replacement.title = `${current.title} website design`;
+    frame.replaceWith(replacement);
+    frame = replacement;
+  }
   frame.title = `${current.title} website design`;
   document.title = `${current.title} · Design preview`;
   if (mode !== "pop") {

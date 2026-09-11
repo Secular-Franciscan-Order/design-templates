@@ -56,12 +56,24 @@ test("preview offers finite previous/next, canonical URLs, history, and persiste
   const frame = page.locator("[data-preview-frame]");
   const previous = page.getByRole("button", { name: "← Previous" });
   const next = page.getByRole("button", { name: "Next →" });
+  const expectRenderedDesign = async (index: number) => {
+    const demo = page.frameLocator("[data-preview-frame]");
+    await expect(frame).toHaveAttribute("sandbox", "allow-scripts allow-popups allow-popups-to-escape-sandbox");
+    await expect(frame).toHaveAttribute("referrerpolicy", "strict-origin-when-cross-origin");
+    await expect(page.locator("[data-template-title]")).toHaveText(designs[index].name);
+    await expect(page.locator("[data-design-number]")).toHaveText(`Design ${index + 1} of 5`);
+    expect(new URL(page.url()).searchParams.get("d")).toBe(designs[index].slug);
+    await expect(demo.getByRole("heading", { level: 1, name: designs[index].heading })).toBeVisible();
+    await expect.poll(() => demo.locator("body").evaluate(() => location.pathname)).toBe(`/designs/${designs[index].slug}/index.html`);
+    await expect.poll(() => demo.locator("body").evaluate(() => document.readyState)).toBe("complete");
+  };
   await expect(page.locator("[data-template-title]")).toHaveText("Quiet Welcome");
   await expect(page.locator("[data-design-number]")).toHaveText("Design 1 of 5");
   await expect(previous).toBeDisabled();
   await expect(frame).toHaveAttribute("sandbox", "allow-scripts allow-popups allow-popups-to-escape-sandbox");
   await expect(page.locator(".preview-toolbar button")).toHaveCount(2);
   expect(new URL(page.url()).searchParams.has("device")).toBe(false);
+  await expectRenderedDesign(0);
   for (let index = 1; index < designs.length; index++) {
     await next.click();
     await expect(page.locator("[data-template-title]")).toHaveText(designs[index].name);
@@ -69,12 +81,19 @@ test("preview offers finite previous/next, canonical URLs, history, and persiste
     await expect(frame).toHaveAttribute("src", `/designs/${designs[index].slug}/index.html`);
     expect(new URL(page.url()).searchParams.get("d")).toBe(designs[index].slug);
     await expect(page.locator("[data-template-title]")).toBeFocused();
+    await expectRenderedDesign(index);
   }
   await expect(next).toBeDisabled();
-  await page.goBack();
-  await expect(page.locator("[data-template-title]")).toHaveText("Come and See");
-  await page.goForward();
-  await expect(page.locator("[data-template-title]")).toHaveText("Gospel to Life");
+  for (let index = designs.length - 2; index >= 0; index--) {
+    await page.goBack();
+    await expectRenderedDesign(index);
+  }
+  await expect(previous).toBeDisabled();
+  for (let index = 1; index < designs.length; index++) {
+    await page.goForward();
+    await expectRenderedDesign(index);
+  }
+  await expect(next).toBeDisabled();
   await previous.click();
   await expect(page.locator("[data-template-title]")).toHaveText("Come and See");
   await expect(page.getByRole("link", { name: "← Back to designs" })).toBeVisible();
