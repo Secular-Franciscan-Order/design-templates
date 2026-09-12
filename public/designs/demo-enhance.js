@@ -1,12 +1,3 @@
-const menuItems = [
-  ["Who We Are", "#who-we-are"],
-  ["Where We Meet", "#where-we-meet"],
-  ["Discernment", "#discernment"],
-  ["The Scoop", "#the-scoop"],
-  ["FAQ", "#faq"],
-  ["Contact", "#contact"]
-];
-
 const setExternalLinkAttrs = () => {
   for (const link of document.querySelectorAll('a[href^="http"]')) {
     link.target = "_blank";
@@ -23,8 +14,8 @@ const bindSmoothAnchors = () => {
       if (!target) return;
 
       event.preventDefault();
-      target.scrollIntoView({ block: "start", behavior: "smooth" });
-      history.replaceState(null, "", `#${id}`);
+      target.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      try { history.replaceState(null, "", `#${id}`); } catch { /* Opaque preview origin; scrolling still works. */ }
     });
   }
 };
@@ -45,9 +36,15 @@ const bindMobileMenus = () => {
     menu.className = "demo-mobile-menu";
     menu.hidden = true;
     menu.setAttribute("aria-label", "Mobile menu");
-    menu.innerHTML = menuItems
-      .map(([label, href]) => `<a href="${href}">${label}</a>`)
-      .join("");
+    const sourceNav = header.querySelector(".desktop-nav");
+    if (!sourceNav) continue;
+    for (const link of sourceNav.querySelectorAll("a")) menu.append(link.cloneNode(true));
+    if (document.getElementById("contact") && !menu.querySelector('a[href="#contact"]')) {
+      const contact = document.createElement("a");
+      contact.href = "#contact";
+      contact.textContent = "Contact";
+      menu.append(contact);
+    }
 
     button.setAttribute("aria-controls", menu.id);
     header.insertAdjacentElement("afterend", menu);
@@ -75,11 +72,7 @@ const bindMobileMenus = () => {
 
 const bindDemoForms = () => {
   for (const form of document.querySelectorAll("form")) {
-    for (const field of form.querySelectorAll("input, textarea")) {
-      field.required = true;
-    }
-
-    form.addEventListener("submit", (event) => {
+    const showDemoFeedback = (event) => {
       event.preventDefault();
 
       if (!form.reportValidity()) return;
@@ -95,11 +88,22 @@ const bindDemoForms = () => {
       status.textContent =
         "✓ Thanks! This is a demo site — nothing was actually sent.";
       form.reset();
-    });
+    };
+    form.addEventListener("submit", showDemoFeedback);
+    // In the opaque preview, allow-forms is intentionally absent. Handle the
+    // button before its native submit action so the non-sending demo still works.
+    for (const button of form.querySelectorAll('button[type="submit"]')) button.addEventListener("click", showDemoFeedback);
+    // Controls start disabled in HTML, preventing native submission if JavaScript fails.
+    form.removeAttribute("action");
+    for (const field of form.querySelectorAll("input, textarea")) {
+      field.required = true;
+      field.disabled = false;
+    }
+    for (const button of form.querySelectorAll('button[type="submit"]')) button.disabled = false;
   }
 };
 
 setExternalLinkAttrs();
-bindSmoothAnchors();
 bindMobileMenus();
+bindSmoothAnchors();
 bindDemoForms();

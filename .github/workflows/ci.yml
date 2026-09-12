@@ -35,6 +35,9 @@ jobs:
       - name: Check
         run: pnpm check
 
+      - name: Contact handler tests
+        run: pnpm test:contact
+
       - name: Build
         run: pnpm build
 

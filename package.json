@@ -13,6 +13,7 @@
     "validate:designs": "node scripts/validate-designs.mjs",
     "build": "pnpm validate:designs && astro check && astro build",
     "preview": "astro preview",
+    "test:contact": "node --experimental-strip-types --test tests/contact/*.test.mjs",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
