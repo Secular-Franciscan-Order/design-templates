@@ -57,6 +57,7 @@ const structuredData = {
       </section>
       <section class="contact-section" id="contact" aria-labelledby="contact-heading">
         <div class="contact-intro"><p class="eyebrow">LET’S TALK</p><h2 id="contact-heading">Let’s make one your own.</h2><p>Tell me about your fraternity, the people you hope to reach, and what you’d like your website to do.</p><p>Prefer email? <a href="mailto:bill@endian.dev?subject=Fraternity%20website%20inquiry">bill@endian.dev</a></p></div>
+        <div class="contact-content">
         <form id="contact-form" action="/api/contact" method="post" data-turnstile-site-key={siteKey}>
           <p class="form-note">Name, email, and message are required.</p>
           <div class="form-pair">
@@ -76,6 +77,13 @@ const structuredData = {
           </div>
           <noscript><p>Please email <a href="mailto:bill@endian.dev">bill@endian.dev</a> to get in touch.</p></noscript>
         </form>
+        <div class="contact-success" data-contact-success hidden>
+          <svg class="success-check" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <h3 tabindex="-1">Message sent</h3>
+          <p>Thank you for getting in touch. I’ll reply to <span data-submitted-email></span>.</p>
+          <button class="secondary-button" type="button" data-send-another>Send another message</button>
+        </div>
+        </div>
       </section>
     </main>
     <script>import "../scripts/contact";</script>

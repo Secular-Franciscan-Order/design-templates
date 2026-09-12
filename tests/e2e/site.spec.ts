@@ -344,19 +344,105 @@ test("contact validates required fields, sends only approved fields, and prevent
   await page.locator("#contact-form").dispatchEvent("submit");
   await expect.poll(() => posts).toBe(1);
   release();
-  await expect(page.locator("[data-form-status]")).toContainText("accepted for delivery");
-  await expect(page.getByLabel("Your name", { exact: true })).toHaveValue("");
+  await expect(page.getByRole("heading", { name: "Message sent", exact: true })).toBeFocused();
+  await expect(page.locator("#contact-form")).toBeHidden();
+  await expect(page.locator("[data-contact-success]")).toContainText("I’ll reply to visitor@example.org.");
+  await expect(page.locator("[data-form-status]")).toBeEmpty();
+  await expect(page.locator("#contact-name")).toHaveValue("Sample visitor");
+  await expect(page.locator("#contact-message")).toHaveValue("");
   expect(posts).toBe(1);
 });
+
+test("contact keeps details for another message and waits for a fresh spam check", async ({ page }) => {
+  const submissions: Record<string, string>[] = [];
+  await page.clock.install();
+  await page.route("**/api/contact", (route) => {
+    submissions.push(route.request().postDataJSON());
+    return route.fulfill({ json: { ok: true } });
+  });
+  await loadConfiguredForm(page, `window.turnstile={resets:0, render(element, options){
+    this.element=element; this.options=options; options.callback('first-token'); return 'widget';
+  }, reset(){
+    this.resets++;
+    const solve=document.createElement('button'); solve.type='button'; solve.textContent='Complete new spam check';
+    solve.onclick=()=>{this.options.callback('second-token'); solve.remove();}; this.element.append(solve);
+  }};`);
+  await fillContact(page);
+  await page.getByLabel("Fraternity (optional)", { exact: true }).fill("Sample fraternity");
+  await page.getByRole("combobox", { name: "Design interest (optional)", exact: true }).selectOption("Quiet Welcome");
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Message sent", exact: true })).toBeFocused();
+  await page.evaluate(() => {
+    const mock = (window as unknown as { turnstile: { options: Record<string, (value?: string) => void>; resets: number } }).turnstile;
+    if (mock.resets !== 0) throw new Error("The hidden challenge was reset");
+    mock.options.callback("late-token");
+    for (const callback of ["before-interactive-callback", "after-interactive-callback", "expired-callback", "error-callback", "timeout-callback", "unsupported-callback"]) mock.options[callback]();
+  });
+  await page.clock.runFor(120000);
+  await expect(page.locator("[data-form-status]")).toBeEmpty();
+  await expect(page.locator('#contact-form button[type="submit"]')).toBeDisabled();
+  await expect(page.locator("[data-contact-success]")).toBeVisible();
+  await page.getByRole("button", { name: "Send another message", exact: true }).click();
+  await expect(page.getByLabel("Your name", { exact: true })).toBeFocused();
+  await expect(page.getByLabel("Your name", { exact: true })).toHaveValue("Sample visitor");
+  await expect(page.getByLabel("Email address", { exact: true })).toHaveValue("visitor@example.org");
+  await expect(page.getByLabel("Fraternity (optional)", { exact: true })).toHaveValue("Sample fraternity");
+  await expect(page.getByRole("combobox", { name: "Design interest (optional)", exact: true })).toHaveValue("Quiet Welcome");
+  await expect(page.getByLabel("Your message", { exact: true })).toHaveValue("");
+  await expect(page.locator("#contact-website")).toHaveValue("");
+  await expect(page.getByRole("button", { name: "Send message", exact: true })).toBeDisabled();
+  await page.getByLabel("Your name", { exact: true }).fill("Another visitor");
+  await page.getByLabel("Email address", { exact: true }).fill("another@example.org");
+  await page.getByLabel("Fraternity (optional)", { exact: true }).fill("Another fraternity");
+  await page.getByRole("combobox", { name: "Design interest (optional)", exact: true }).selectOption("Gospel to Life");
+  await page.getByLabel("Your message", { exact: true }).fill("A different message about the design.");
+  await page.locator("#contact-form").dispatchEvent("submit");
+  expect(submissions).toHaveLength(1);
+  await page.getByRole("button", { name: "Complete new spam check", exact: true }).click();
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Message sent", exact: true })).toBeFocused();
+  await expect(page.locator("[data-submitted-email]")).toHaveText("another@example.org");
+  expect(submissions).toHaveLength(2);
+  expect(submissions[0].turnstileToken).toBe("first-token");
+  expect(submissions[1]).toMatchObject({ name: "Another visitor", email: "another@example.org", fraternity: "Another fraternity", design: "Gospel to Life", message: "A different message about the design.", website: "", turnstileToken: "second-token" });
+});
+
+for (const width of [320, 390, 600, 1280]) {
+  test(`contact confirmation wraps a long email without reserving the form height at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await page.route("**/api/contact", (route) => route.fulfill({ json: { ok: true } }));
+    await configuredForm(page);
+    await fillContact(page);
+    const email = `${"a".repeat(64)}@${"b".repeat(60)}.${"c".repeat(60)}.example`;
+    await page.getByLabel("Email address", { exact: true }).fill(email);
+    const formHeight = (await page.locator("#contact-form").boundingBox())!.height;
+    await page.getByRole("button", { name: "Send message", exact: true }).click();
+    const heading = page.getByRole("heading", { name: "Message sent", exact: true });
+    await expect(heading).toBeFocused();
+    await expect(heading).toBeInViewport();
+    await expect(page.locator("#contact-form")).toBeHidden();
+    await expect(page.locator("[data-submitted-email]")).toHaveText(email);
+    await expect(page.getByRole("button", { name: "Send another message", exact: true })).toBeInViewport();
+    expect((await page.locator(".contact-content").boundingBox())!.height).toBeLessThan(formHeight);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  });
+}
 
 test("contact preserves input and useful error after Turnstile renewal", async ({ page }) => {
   await page.route("**/api/contact", (route) => route.fulfill({ status: 503, json: { ok: false, message: "The contact form is not available yet. Please email bill@endian.dev." } }));
   await configuredForm(page);
   await fillContact(page);
+  await page.getByLabel("Fraternity (optional)", { exact: true }).fill("Sample fraternity");
+  await page.getByRole("combobox", { name: "Design interest (optional)", exact: true }).selectOption("Quiet Welcome");
   await page.getByRole("button", { name: "Send message" }).click();
   await expect(page.getByRole("alert")).toContainText("Please email bill@endian.dev.");
   await expect(page.getByRole("button", { name: "Send message" })).toBeEnabled();
   await expect(page.getByLabel("Your message", { exact: true })).toHaveValue("I would like a website for our fraternity.");
+  await expect(page.getByLabel("Your name", { exact: true })).toHaveValue("Sample visitor");
+  await expect(page.getByLabel("Email address", { exact: true })).toHaveValue("visitor@example.org");
+  await expect(page.getByLabel("Fraternity (optional)", { exact: true })).toHaveValue("Sample fraternity");
+  await expect(page.getByRole("combobox", { name: "Design interest (optional)", exact: true })).toHaveValue("Quiet Welcome");
+  await expect(page.locator("[data-contact-success]")).toBeHidden();
   await expect(page.getByRole("alert")).toContainText("not available yet");
 });
 
@@ -367,4 +453,7 @@ test("contact never claims success for a network failure", async ({ page }) => {
   await page.getByRole("button", { name: "Send message" }).click();
   await expect(page.getByRole("alert")).toContainText("couldn’t confirm");
   await expect(page.getByLabel("Your name", { exact: true })).toHaveValue("Sample visitor");
+  await expect(page.getByLabel("Email address", { exact: true })).toHaveValue("visitor@example.org");
+  await expect(page.getByLabel("Your message", { exact: true })).toHaveValue("I would like a website for our fraternity.");
+  await expect(page.locator("[data-contact-success]")).toBeHidden();
 });

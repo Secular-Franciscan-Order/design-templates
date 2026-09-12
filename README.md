@@ -86,9 +86,11 @@ accepted for delivery; it is not a promise of eventual inbox delivery. Unknown
 outcomes ask the visitor to email before retrying. Responses are not cached,
 and the application does not store or log submitted message content.
 
-The browser preserves inputs on failure, prevents duplicate pending submits,
-and clears fields only after confirmed acceptance. Without a site key or
-JavaScript, it offers email instead of implying a message was sent.
+The browser preserves inputs on failure and prevents duplicate pending submits.
+After confirmed acceptance, a confirmation panel replaces the form; only the
+message and honeypot are cleared. Sending another message restores editable
+contact details from the current page and starts a fresh spam check. Without a
+site key or JavaScript, it offers email instead of implying a message was sent.
 
 Official references: [Email REST API](https://developers.cloudflare.com/email-service/api/send-emails/rest-api/),
 [Email API schema](https://developers.cloudflare.com/api/resources/email_sending/methods/send/),
