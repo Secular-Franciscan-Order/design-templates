@@ -210,10 +210,29 @@ test("fictional visit and news links work without real venue or newsletter claim
   await page.getByRole("link", { name: "Get directions", exact: true }).click();
   await expect(page.getByRole("heading", { name: "St. Mary Parish Hall" })).toBeVisible();
   await expect(page.locator("body")).toContainText("not a real destination");
+  await page.getByRole("link", { name: "← Back to the design", exact: true }).click();
+  await expect(page.getByRole("link", { name: "Get directions", exact: true })).toBeVisible();
   await page.goto("/designs/st-margaret-2026/direction-c/index.html");
   await page.locator(".issue.feature").click();
   await expect(page.getByRole("heading", { name: "Summer: room at the table" })).toBeVisible();
   await expect(page.locator("body")).toContainText("not reports of real events");
+});
+
+test("sample visit returns within the sandbox and offers a gallery route when opened directly", async ({ page }) => {
+  await page.goto("/preview?d=st-margaret-2026/direction-a");
+  const previewUrl = page.url();
+  const frame = page.frameLocator("[data-preview-frame]");
+  await frame.getByRole("link", { name: "Get directions", exact: true }).click();
+  await expect(frame.getByRole("heading", { name: "St. Mary Parish Hall" })).toBeVisible();
+  await frame.getByRole("link", { name: "← Back to the design", exact: true }).click();
+  await expect(frame.getByRole("link", { name: "Get directions", exact: true })).toBeVisible();
+  expect(page.url()).toBe(previewUrl);
+  await expect(page.locator("[data-preview-frame]")).toHaveAttribute("sandbox", "allow-scripts allow-popups allow-popups-to-escape-sandbox");
+
+  await page.goto("/designs/sample-visit.html");
+  await page.getByRole("link", { name: "← Browse the designs", exact: true }).click();
+  await expect(page).toHaveURL(/\/#designs$/);
+  await expect(page.locator(".design-card")).toHaveCount(5);
 });
 
 test("legacy Current Site remains reachable outside the public sequence", async ({ page, request }) => {

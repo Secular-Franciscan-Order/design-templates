@@ -66,10 +66,9 @@ to send. The visible email fallback remains available during setup.
 | `CONTACT_RECIPIENT` | Runtime variable | The fixed destination for inquiries. It cannot be supplied by a visitor. |
 
 Cloudflare Email Service must be enabled for the account and the sender/domain
-must be verified. Production email settings were not available during this
-implementation; confirm availability, permissions, sender, recipient, and
-Turnstile hostnames before relying on this feature. Adding these settings and
-performing a real delivery test are separate deployment setup steps.
+must be verified. Configure both Preview and Production, confirm availability,
+permissions, sender, recipient, and Turnstile hostnames, and perform a real
+delivery test before relying on this feature.
 
 Set up Turnstile for `ofs-demos.endian.dev` and the project's applicable preview
 hostnames. The handler accepts same-origin requests only from production,

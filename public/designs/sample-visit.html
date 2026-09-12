@@ -1,3 +1,17 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Sample visit · St. Clare Fraternity</title><link rel="stylesheet" href="/designs/shared/sample-pages.css"></head>
-<body class="visit"><main><p class="eyebrow">A FICTIONAL DEMONSTRATION VENUE</p><h1>St. Mary Parish Hall</h1><p class="location">Cedar Grove</p><div class="gathering"><strong>Second Sunday of each month</strong><span>2–4 pm · Main gathering room</span></div><p>This sample location shows where your fraternity’s visit information would appear. It is not a real destination.</p><p>On your own website, visitors would find your address, an accurate map, and directions here.</p></main></body></html>
+<body class="visit"><main><a class="sample-back" href="/#designs">← Browse the designs</a><p class="eyebrow">A FICTIONAL DEMONSTRATION VENUE</p><h1>St. Mary Parish Hall</h1><p class="location">Cedar Grove</p><div class="gathering"><strong>Second Sunday of each month</strong><span>2–4 pm · Main gathering room</span></div><p>This sample location shows where your fraternity’s visit information would appear. It is not a real destination.</p><p>On your own website, visitors would find your address, an accurate map, and directions here.</p></main>
+<script>
+  const back = document.querySelector(".sample-back");
+  const embedded = window.parent !== window;
+  if (embedded) { back.target = "_blank"; back.rel = "noopener"; }
+  // Sandboxed design pages have opaque origins and do not pass a referrer.
+  if (history.length > 1 && (embedded || document.referrer.startsWith(`${location.origin}/designs/`))) {
+    back.textContent = "← Back to the design";
+    back.addEventListener("click", (event) => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      history.back();
+    });
+  }
+</script></body></html>
