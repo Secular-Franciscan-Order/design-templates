@@ -1,5 +1,4 @@
 type Turnstile = {
-  ready: (callback: () => void) => void;
   render: (element: HTMLElement, options: Record<string, unknown>) => string;
   reset: (widget: string) => void;
 };
@@ -86,20 +85,18 @@ if (siteKey) {
     const turnstile = window.turnstile;
     if (!turnstile) { initializationFailed(); return; }
     try {
-      turnstile.ready(() => {
-        try {
-          widget = turnstile.render(form.querySelector<HTMLElement>("[data-turnstile]")!, {
-            sitekey: siteKey, action: "contact", size: "flexible",
-            "response-field": false,
-            callback: (value: string) => { clearChallengeWait(); token = value; button.disabled = pending; challengeStatus(""); },
-            "before-interactive-callback": () => { clearChallengeWait(); challengeStatus("Please complete the spam check to send your message."); },
-            "after-interactive-callback": () => { if (!token) { challengeStatus("Completing the spam check…"); waitForChallenge(); } },
-            "expired-callback": () => { clearChallengeWait(); token = ""; button.disabled = true; challengeStatus("The spam check expired. Please complete it again."); },
-            "error-callback": () => challengeFailed("The spam check could not complete. Please try again or email bill@endian.dev."),
-            "timeout-callback": () => challengeFailed("The spam check timed out. Please try it again or email bill@endian.dev."),
-            "unsupported-callback": () => challengeFailed("The spam check is not supported in this browser. Please try another browser or email bill@endian.dev.")
-          });
-        } catch { initializationFailed(); }
+      // This async script's load event is the readiness signal. Turnstile.ready()
+      // rejects scripts loaded with async/defer.
+      widget = turnstile.render(form.querySelector<HTMLElement>("[data-turnstile]")!, {
+        sitekey: siteKey, action: "contact", size: "flexible",
+        "response-field": false,
+        callback: (value: string) => { clearChallengeWait(); token = value; button.disabled = pending; challengeStatus(""); },
+        "before-interactive-callback": () => { clearChallengeWait(); challengeStatus("Please complete the spam check to send your message."); },
+        "after-interactive-callback": () => { if (!token) { challengeStatus("Completing the spam check…"); waitForChallenge(); } },
+        "expired-callback": () => { clearChallengeWait(); token = ""; button.disabled = true; challengeStatus("The spam check expired. Please complete it again."); },
+        "error-callback": () => challengeFailed("The spam check could not complete. Please try again or email bill@endian.dev."),
+        "timeout-callback": () => challengeFailed("The spam check timed out. Please try it again or email bill@endian.dev."),
+        "unsupported-callback": () => challengeFailed("The spam check is not supported in this browser. Please try another browser or email bill@endian.dev.")
       });
     } catch { initializationFailed(); }
   });
