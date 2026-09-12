@@ -231,25 +231,73 @@ test("legacy Current Site remains reachable outside the public sequence", async 
   await expect(demo.getByRole("heading", { name: "Who We Are", exact: true })).toBeVisible();
 });
 
-async function configuredForm(page: Page) {
+const successfulTurnstile = `
+  window.turnstile={ ready(callback){callback();}, render(element, options) {
+    const field=document.createElement('input'); field.type='hidden'; field.name='cf-turnstile-response'; field.value='widget-token'; element.append(field);
+    this.options=options; options.callback('widget-token'); return 'widget';
+  }, reset(){queueMicrotask(()=>this.options.callback('fresh-widget-token'));} };
+`;
+async function loadConfiguredForm(page: Page, turnstileScript: string | null = successfulTurnstile) {
   await page.route("http://127.0.0.1:4321/", async (route) => {
     const response = await route.fetch();
     const html = (await response.text()).replace(/data-turnstile-site-key(?:="[^"]*")?/, 'data-turnstile-site-key="test-site-key"');
     await route.fulfill({ response, body: html });
   });
-  await page.route("https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit", (route) => route.fulfill({ contentType: "application/javascript", body: `
-    window.turnstile={ render(element, options) {
-      const field=document.createElement('input'); field.type='hidden'; field.name='cf-turnstile-response'; field.value='widget-token'; element.append(field);
-      this.options=options; options.callback('widget-token'); return 'widget';
-    }, reset(){queueMicrotask(()=>this.options.callback('fresh-widget-token'));} };
-  ` }));
+  await page.route("https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit", (route) => turnstileScript === null ? route.abort() : route.fulfill({ contentType: "application/javascript", body: turnstileScript }));
   await page.goto("/");
+}
+async function configuredForm(page: Page) {
+  await loadConfiguredForm(page);
   await expect(page.getByRole("button", { name: "Send message" })).toBeEnabled();
 }
 async function fillContact(page: Page) {
   await page.getByLabel("Your name", { exact: true }).fill("Sample visitor");
   await page.getByLabel("Email address", { exact: true }).fill("visitor@example.org");
   await page.getByLabel("Your message", { exact: true }).fill("I would like a website for our fraternity.");
+}
+
+test("contact waits for API readiness, explains a long wait, and accepts a late challenge result", async ({ page }) => {
+  await page.clock.install();
+  await loadConfiguredForm(page, `window.turnstile={
+    ready(callback){setTimeout(()=>{this.isReady=true; callback();}, 60000);},
+    render(element, options){if(!this.isReady) throw new Error('API is not ready'); options.callback('late-token'); return 'widget';}
+  };`);
+  await expect(page.getByRole("button", { name: "Send message" })).toBeDisabled();
+  await page.clock.runFor(30000);
+  await expect(page.getByRole("alert")).toContainText("taking longer than expected");
+  await expect(page.getByRole("alert")).toContainText("email bill@endian.dev");
+  await expect(page.getByRole("button", { name: "Send message" })).toBeDisabled();
+  await page.clock.runFor(30000);
+  await expect(page.getByRole("button", { name: "Send message" })).toBeEnabled();
+  await expect(page.locator("[data-form-status]")).toBeEmpty();
+});
+
+test("contact gives an interactive challenge time to finish without a custom deadline", async ({ page }) => {
+  await page.clock.install();
+  await loadConfiguredForm(page, `window.turnstile={ready(callback){callback();}, render(element, options){
+    options['before-interactive-callback']();
+    const solve=document.createElement('button'); solve.type='button'; solve.textContent='Finish sample challenge';
+    solve.onclick=()=>{options['after-interactive-callback'](); options.callback('interactive-token');}; element.append(solve); return 'widget';
+  }};`);
+  await page.clock.runFor(120000);
+  await expect(page.locator("[data-form-status]")).toHaveText("Please complete the spam check to send your message.");
+  await expect(page.getByRole("button", { name: "Send message" })).toBeDisabled();
+  await page.getByRole("button", { name: "Finish sample challenge" }).click();
+  await expect(page.getByRole("button", { name: "Send message" })).toBeEnabled();
+  await expect(page.locator("[data-form-status]")).toBeEmpty();
+});
+
+for (const failure of [
+  { name: "blocked script", script: null, message: "could not load" },
+  { name: "missing API", script: "/* API unavailable */", message: "could not start" },
+  { name: "render failure", script: "window.turnstile={ready(callback){callback();},render(){throw new Error('Unable to render');}};", message: "could not start" }
+]) {
+  test(`contact provides a usable fallback after ${failure.name}`, async ({ page }) => {
+    await loadConfiguredForm(page, failure.script);
+    await expect(page.getByRole("alert")).toContainText(failure.message);
+    await expect(page.getByRole("alert")).toContainText("email bill@endian.dev");
+    await expect(page.getByRole("button", { name: "Send message" })).toBeDisabled();
+  });
 }
 
 test("contact validates required fields, sends only approved fields, and prevents duplicate pending requests", async ({ page }) => {
