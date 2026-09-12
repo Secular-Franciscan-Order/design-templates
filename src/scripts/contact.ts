@@ -51,7 +51,7 @@ form.addEventListener("submit", async (event) => {
   button.disabled = true;
   button.textContent = "Sending…";
   form.setAttribute("aria-busy", "true");
-  setStatus("Sending your message…");
+  setStatus("");
   submissionFeedback = true;
   const data = new FormData(form);
   const fields = Object.fromEntries(["name", "email", "fraternity", "design", "message", "website"].map((name) => [name, String(data.get(name) ?? "")]));
@@ -92,7 +92,7 @@ if (siteKey) {
         "response-field": false,
         callback: (value: string) => { clearChallengeWait(); token = value; button.disabled = pending; challengeStatus(""); },
         "before-interactive-callback": () => { clearChallengeWait(); challengeStatus("Please complete the spam check to send your message."); },
-        "after-interactive-callback": () => { if (!token) { challengeStatus("Completing the spam check…"); waitForChallenge(); } },
+        "after-interactive-callback": () => { if (!token) { challengeStatus(""); waitForChallenge(); } },
         "expired-callback": () => { clearChallengeWait(); token = ""; button.disabled = true; challengeStatus("The spam check expired. Please complete it again."); },
         "error-callback": () => challengeFailed("The spam check could not complete. Please try again or email bill@endian.dev."),
         "timeout-callback": () => challengeFailed("The spam check timed out. Please try it again or email bill@endian.dev."),

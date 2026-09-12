@@ -70,8 +70,10 @@ const structuredData = {
           <label for="contact-message">Your message<textarea id="contact-message" name="message" rows="5" maxlength="5000" required></textarea></label>
           <div class="form-trap" aria-hidden="true"><label for="contact-website">Leave this field empty<input id="contact-website" name="website" tabindex="-1" autocomplete="off" /></label></div>
           <div data-turnstile></div>
-          <button class="send-button" type="submit" disabled>Send message</button>
-          <p class="form-status" data-form-status role="status" aria-live="polite">{siteKey ? "Loading the spam check…" : "The form is not available yet. Please email bill@endian.dev."}</p>
+          <div class="contact-actions">
+            <p class="form-status" data-form-status role="status" aria-live="polite">{siteKey ? "" : "The form is not available yet. Please email bill@endian.dev."}</p>
+            <button class="send-button" type="submit" disabled>Send message</button>
+          </div>
           <noscript><p>Please email <a href="mailto:bill@endian.dev">bill@endian.dev</a> to get in touch.</p></noscript>
         </form>
       </section>

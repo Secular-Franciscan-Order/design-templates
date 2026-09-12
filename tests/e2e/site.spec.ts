@@ -240,7 +240,9 @@ const successfulTurnstile = `
 async function loadConfiguredForm(page: Page, turnstileScript: string | null = successfulTurnstile) {
   await page.route("http://127.0.0.1:4321/", async (route) => {
     const response = await route.fetch();
-    const html = (await response.text()).replace(/data-turnstile-site-key(?:="[^"]*")?/, 'data-turnstile-site-key="test-site-key"');
+    const html = (await response.text())
+      .replace(/data-turnstile-site-key(?:="[^"]*")?/, 'data-turnstile-site-key="test-site-key"')
+      .replace("The form is not available yet. Please email bill@endian.dev.", "");
     await route.fulfill({ response, body: html });
   });
   await page.route("https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit", (route) => turnstileScript === null ? route.abort() : route.fulfill({ contentType: "application/javascript", body: turnstileScript }));
@@ -263,6 +265,7 @@ test("contact renders after async script load, explains a long wait, and accepts
     render(element, options){setTimeout(()=>options.callback('late-token'), 60000); return 'widget';}
   };`);
   await expect(page.getByRole("button", { name: "Send message" })).toBeDisabled();
+  await expect(page.locator("[data-form-status]")).toBeEmpty();
   await page.clock.runFor(30000);
   await expect(page.getByRole("alert")).toContainText("taking longer than expected");
   await expect(page.getByRole("alert")).toContainText("email bill@endian.dev");
@@ -318,6 +321,7 @@ test("contact validates required fields, sends only approved fields, and prevent
   await fillContact(page);
   await page.getByRole("button", { name: "Send message" }).click();
   await expect(page.getByRole("button", { name: "Sending…" })).toBeDisabled();
+  await expect(page.locator("[data-form-status]")).toBeEmpty();
   await page.locator("#contact-form").dispatchEvent("submit");
   await expect.poll(() => posts).toBe(1);
   release();
